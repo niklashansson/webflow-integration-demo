@@ -1,0 +1,77 @@
+[
+  {
+    "id": "cat_001",
+    "name": "Barre",
+    "slug": "barre"
+  },
+  {
+    "id": "cat_002",
+    "name": "Bastu",
+    "slug": "bastu"
+  },
+  {
+    "id": "cat_003",
+    "name": "CrossFit",
+    "slug": "crossfit"
+  },
+  {
+    "id": "cat_004",
+    "name": "Dans",
+    "slug": "dans"
+  },
+  {
+    "id": "cat_005",
+    "name": "Gym",
+    "slug": "gym"
+  },
+  {
+    "id": "cat_006",
+    "name": "Högintensiv",
+    "slug": "hogintensiv"
+  },
+  {
+    "id": "cat_007",
+    "name": "Kampsport",
+    "slug": "kampsport"
+  },
+  {
+    "id": "cat_008",
+    "name": "Klättring",
+    "slug": "klattring"
+  },
+  {
+    "id": "cat_009",
+    "name": "Padel",
+    "slug": "padel"
+  },
+  {
+    "id": "cat_010",
+    "name": "Pilates",
+    "slug": "pilates"
+  },
+  {
+    "id": "cat_011",
+    "name": "Racketsport",
+    "slug": "racketsport"
+  },
+  {
+    "id": "cat_012",
+    "name": "Simning",
+    "slug": "simning"
+  },
+  {
+    "id": "cat_013",
+    "name": "Styrka",
+    "slug": "styrka"
+  },
+  {
+    "id": "cat_014",
+    "name": "Utomhus",
+    "slug": "utomhus"
+  },
+  {
+    "id": "cat_015",
+    "name": "Yoga",
+    "slug": "yoga"
+  }
+]

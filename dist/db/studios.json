@@ -1,0 +1,74 @@
+[
+    {
+        "id": "studio_001",
+        "name": "Bruce Studios Vasastan",
+        "address": "Odengatan 42",
+        "city": "Stockholm",
+        "description": "Ett premium padelhall i hjärtat av Vasastan med 6 banor och toppmodern utrustning. Här möts passion för padel med skandinavisk design.",
+        "heroImageUrl": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1200",
+        "lat": 59.3426,
+        "lng": 18.0549,
+        "slug": "bruce-studios-vasastan",
+        "categoryIds": ["cat_009", "cat_011"]
+    },
+    {
+        "id": "studio_002",
+        "name": "Bruce Studios Södermalm",
+        "address": "Götgatan 78",
+        "city": "Stockholm",
+        "description": "Vår flaggskeppsanläggning på Södermalm erbjuder 8 banor, restaurang och recovery-zon. Perfekt för både nybörjare och proffs.",
+        "heroImageUrl": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200",
+        "lat": 59.3151,
+        "lng": 18.0736,
+        "slug": "bruce-studios-sodermalm",
+        "categoryIds": ["cat_005", "cat_009", "cat_013", "cat_015"]
+    },
+    {
+        "id": "studio_003",
+        "name": "Bruce Studios Kungsholmen",
+        "address": "Fleminggatan 18",
+        "city": "Stockholm",
+        "description": "Modern anläggning nära Fridhemsplan med 5 banor och flexibla öppettider. Boka enkelt via appen.",
+        "heroImageUrl": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1200",
+        "lat": 59.3327,
+        "lng": 18.0347,
+        "slug": "bruce-studios-kungsholmen",
+        "categoryIds": ["cat_003", "cat_006", "cat_013"]
+    },
+    {
+        "id": "studio_004",
+        "name": "Bruce Studios Göteborg",
+        "address": "Avenyn 25",
+        "city": "Göteborg",
+        "description": "Vår första anläggning på västkusten. 6 banor med havsutsikt och Göteborgs bästa padelmiljö.",
+        "heroImageUrl": "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200",
+        "lat": 57.6969,
+        "lng": 11.9746,
+        "slug": "bruce-studios-goteborg",
+        "categoryIds": ["cat_009", "cat_010", "cat_015"]
+    },
+    {
+        "id": "studio_005",
+        "name": "Bruce Studios Malmö",
+        "address": "Stortorget 12",
+        "city": "Malmö",
+        "description": "Centralt belägen i Malmö med 4 banor och café. Perfekt för en match efter jobbet.",
+        "heroImageUrl": "https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?w=1200",
+        "lat": 55.6059,
+        "lng": 13.0007,
+        "slug": "bruce-studios-malmo",
+        "categoryIds": ["cat_001", "cat_004", "cat_010", "cat_015"]
+    },
+    {
+        "id": "studio_006",
+        "name": "Bruce Studios Uppsala",
+        "address": "Svartbäcksgatan 8",
+        "city": "Uppsala",
+        "description": "Studentvänlig anläggning nära centrum med 4 banor och förmånliga medlemspriser.",
+        "heroImageUrl": null,
+        "lat": 59.8586,
+        "lng": 17.6389,
+        "slug": "bruce-studios-uppsala",
+        "categoryIds": ["cat_005", "cat_007", "cat_008", "cat_012"]
+    }
+]

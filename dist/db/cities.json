@@ -1,0 +1,22 @@
+[
+    {
+        "id": "city_001",
+        "name": "Stockholm",
+        "slug": "stockholm"
+    },
+    {
+        "id": "city_002",
+        "name": "Göteborg",
+        "slug": "goteborg"
+    },
+    {
+        "id": "city_003",
+        "name": "Malmö",
+        "slug": "malmo"
+    },
+    {
+        "id": "city_004",
+        "name": "Uppsala",
+        "slug": "uppsala"
+    }
+]
