@@ -1,4 +1,8 @@
-import { config, upsertCollection, publishSite } from "../webflow/client.js";
+import {
+  webflowConfig,
+  upsertCollection,
+  publishSite,
+} from "../webflow/client.js";
 import {
   getCategoriesSchema,
   getCitiesSchema,
@@ -24,7 +28,6 @@ async function validateCollectionFields(
     (collection.fields ?? []).map((f) => f.slug),
   );
   const expectedFieldIds = expectedFields.map((f) => f.id).filter(Boolean);
-
   const warnings: string[] = [];
 
   // Check for missing fields
@@ -59,7 +62,10 @@ export async function syncCollections(): Promise<SetupResult> {
     // Step 1: Categories
     console.log("📁 Syncing Categories collection...");
     const categoriesSchema = getCategoriesSchema();
-    const categories = await upsertCollection(config.siteId, categoriesSchema);
+    const categories = await upsertCollection(
+      webflowConfig.siteId,
+      categoriesSchema,
+    );
     if (!categories.id) throw new Error("Failed to sync Categories collection");
     result.collections.categories = {
       id: categories.id,
@@ -76,7 +82,7 @@ export async function syncCollections(): Promise<SetupResult> {
     // Step 2: Cities
     console.log("📁 Syncing Cities collection...");
     const citiesSchema = getCitiesSchema();
-    const cities = await upsertCollection(config.siteId, citiesSchema);
+    const cities = await upsertCollection(webflowConfig.siteId, citiesSchema);
     if (!cities.id) throw new Error("Failed to sync Cities collection");
     result.collections.cities = {
       id: cities.id,
@@ -93,7 +99,7 @@ export async function syncCollections(): Promise<SetupResult> {
     // Step 3: Studios (depends on Categories and Cities)
     console.log("📁 Syncing Studios collection...");
     const studiosSchema = getStudiosSchema(categories.id, cities.id);
-    const studios = await upsertCollection(config.siteId, studiosSchema);
+    const studios = await upsertCollection(webflowConfig.siteId, studiosSchema);
     if (!studios.id) throw new Error("Failed to sync Studios collection");
     result.collections.studios = {
       id: studios.id,

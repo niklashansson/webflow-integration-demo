@@ -1,104 +1,53 @@
-import {
-  webflow,
-  findCollectionBySlug,
-  getItemByExternalId,
-} from "../webflow/client.js";
+import { webflowConfig } from "../webflow/client.js";
+import { type Studio, type SupportedLocale } from "../db/index.js";
+import { syncCollection, type SyncResult } from "./utils.js";
 import type { StudioCollectionItem } from "../webflow/schemas.js";
-import type { Studio } from "../db/index.js";
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+// Extended options for studios (needs reference maps)
+type StudioSyncDeps = {
+  categoryIdMap: Map<string, string>;
+  cityIdMap: Map<string, string>;
+};
 
-// Sync a single studio to Webflow CMS
-export async function syncStudioToWebflow(
-  siteId: string,
+/**
+ * Build studio field data for a specific locale.
+ */
+function buildStudioFieldData(
   studio: Studio,
-  categoryIdMap?: Map<string, string>,
-  cityIdMap?: Map<string, string>,
-) {
-  const collection = await findCollectionBySlug(siteId, "studios");
-  if (!collection) throw new Error("Studios collection not found");
-
-  const existingItem = await getItemByExternalId(
-    collection.id,
-    studio.id,
-    studio.slug,
-  );
-
-  // Resolve references
-  const webflowCategoryIds: string[] = [];
-  if (categoryIdMap && studio.categoryIds) {
-    for (const catId of studio.categoryIds) {
-      const webflowId = categoryIdMap.get(catId);
-      if (webflowId) webflowCategoryIds.push(webflowId);
-    }
-  }
-  const webflowCityId = cityIdMap?.get(studio.city);
-
-  const fieldData: StudioCollectionItem = {
-    name: studio.name,
+  locale: SupportedLocale,
+  deps: StudioSyncDeps,
+): StudioCollectionItem {
+  return {
+    name: studio.locales[locale].name,
     slug: studio.slug,
-    address: studio.address,
-    city: webflowCityId,
-    description: studio.description ?? undefined,
-    latitude: studio.lat ?? undefined,
-    longitude: studio.lng ?? undefined,
     "external-id": studio.id,
     "hero-image": studio.heroImageUrl ?? undefined,
-    categories: webflowCategoryIds,
+    address: studio.address,
+    latitude: studio.lat ?? undefined,
+    longitude: studio.lng ?? undefined,
+    city: deps.cityIdMap.get(studio.city) ?? undefined,
+    categories: studio.categoryIds
+      .map((id) => deps.categoryIdMap.get(id) ?? undefined)
+      .filter(Boolean) as string[],
+    description: studio.locales[locale].description,
   };
-
-  if (existingItem) {
-    const updated = await webflow.collections.items.updateItemLive(
-      collection.id,
-      existingItem.id!,
-      { fieldData },
-    );
-    console.log(`✅ Updated & published studio: ${studio.name}`);
-    return { action: "updated", item: updated };
-  } else {
-    const created = await webflow.collections.items.createItemLive(
-      collection.id,
-      { fieldData },
-    );
-    console.log(`✅ Created & published studio: ${studio.name}`);
-    return { action: "created", item: created };
-  }
 }
 
-// Bulk sync all studios
+/**
+ * Sync all studios to Webflow CMS with all locales.
+ */
 export async function syncAllStudios(
-  siteId: string,
-  studios: Studio[],
-  categoryIdMap?: Map<string, string>,
-  cityIdMap?: Map<string, string>,
-) {
-  const results = {
-    created: 0,
-    updated: 0,
-    failed: 0,
-    errors: [] as { studioId: string; error: string }[],
-  };
+  dbStudios: Studio[],
+  categoryIdMap: Map<string, string>,
+  cityIdMap: Map<string, string>,
+): Promise<SyncResult> {
+  const deps: StudioSyncDeps = { categoryIdMap, cityIdMap };
 
-  for (const studio of studios) {
-    try {
-      const result = await syncStudioToWebflow(
-        siteId,
-        studio,
-        categoryIdMap,
-        cityIdMap,
-      );
-      if (result.action === "created") results.created++;
-      else results.updated++;
-      await sleep(1000);
-    } catch (error) {
-      results.failed++;
-      results.errors.push({
-        studioId: studio.id,
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-      console.error(`❌ Failed to sync studio ${studio.id}:`, error);
-    }
-  }
-
-  return results;
+  return syncCollection({
+    collectionSlug: webflowConfig.collectionSlugs.studios,
+    entityName: "Studios",
+    items: dbStudios,
+    buildFieldData: (studio, locale) =>
+      buildStudioFieldData(studio, locale, deps),
+  });
 }

@@ -9,6 +9,7 @@ A demonstration of syncing data from a mock database to Webflow CMS using the of
 - ✅ **Smart Sync** – Creates new items, updates existing, and cleans up orphaned entries
 - ✅ **Reference Fields** – Supports both single (`Reference`) and multi-reference (`MultiReference`) field types
 - ✅ **External ID Tracking** – Uses `external-id` field to maintain sync between source DB and Webflow
+- ✅ **Multi-Locale Support** – Syncs content across multiple locales (Swedish, English)
 
 ---
 
@@ -18,19 +19,20 @@ A demonstration of syncing data from a mock database to Webflow CMS using the of
 src/
 ├── index.ts              # Hono API server with sync endpoints
 ├── db/                   # Mock database (JSON files)
-│   ├── index.ts          # Data access layer with types
-│   ├── categories.json   # Sample category data
-│   ├── cities.json       # Sample city data
-│   └── studios.json      # Sample studio data
+│   ├── index.ts          # Data access layer with types & locale support
+│   ├── categories.json   # Localized category data (sv/en)
+│   ├── cities.json       # Localized city data (sv/en)
+│   └── studios.json      # Localized studio data (sv/en)
 ├── sync/                 # Sync logic
 │   ├── index.ts          # Main sync orchestration (syncAll)
+│   ├── utils.ts          # Generic sync function & shared types
 │   ├── collections.ts    # Collection creation & validation
-│   ├── categories.ts     # Category item sync
-│   ├── cities.ts         # City item sync
-│   ├── studios.ts        # Studio item sync (with references)
-│   └── cleanup.ts        # Orphaned item removal
+│   ├── categories.ts     # Category item sync with localization
+│   ├── cities.ts         # City item sync with localization
+│   ├── studios.ts        # Studio item sync with localization
+│   └── cleanup.ts        # Orphaned item & reference cleanup
 └── webflow/              # Webflow API utilities
-    ├── client.ts         # API client wrapper & helpers
+    ├── client.ts         # API client wrapper, locale helpers
     └── schemas.ts        # Collection field definitions & types
 ```
 
@@ -41,8 +43,10 @@ src/
 ### Prerequisites
 
 - Node.js 18+
+- pnpm (recommended) or npm
 - Webflow account with a site
 - [Webflow API Access Token](https://developers.webflow.com/reference/authorization)
+- **Localization enabled** in your Webflow site (for multi-locale support)
 
 ### Installation
 
@@ -52,7 +56,7 @@ git clone <repo-url>
 cd webflow-integration-demo
 
 # Install dependencies
-npm install
+pnpm install
 
 # Copy environment file
 cp .env.example .env
@@ -65,6 +69,9 @@ Edit `.env` with your Webflow credentials:
 ```env
 WEBFLOW_ACCESS_TOKEN=your_access_token_here
 WEBFLOW_SITE_ID=your_site_id_here
+WEBFLOW_CATEGORIES_COLLECTION_SLUG=categories
+WEBFLOW_CITIES_COLLECTION_SLUG=cities
+WEBFLOW_STUDIOS_COLLECTION_SLUG=studios
 ```
 
 > **Finding your Site ID:** In Webflow, go to Site Settings → General → look for the Site ID in the URL or API section.
@@ -73,11 +80,11 @@ WEBFLOW_SITE_ID=your_site_id_here
 
 ```bash
 # Development (with hot reload)
-npm run dev
+pnpm dev
 
 # Production
-npm run build
-npm start
+pnpm build
+pnpm start
 ```
 
 Server runs at `http://localhost:3000`
@@ -94,7 +101,7 @@ GET /health
 
 Returns `{ "status": "ok" }` if the server is running.
 
-### Sync Collections
+### Sync Collections (Schema)
 
 ```bash
 POST /api/sync/collections
@@ -129,37 +136,110 @@ This endpoint will:
 }
 ```
 
-### Full Sync
+### Full Sync (All Items + Cleanup)
 
 ```bash
 POST /api/sync/all
 ```
 
-Syncs all data from the mock database to Webflow CMS:
+Syncs all data from the mock database to Webflow CMS **across all configured locales**:
 
-1. **Sync Categories** – Creates/updates category items
-2. **Sync Cities** – Creates/updates city items
+1. **Sync Categories** – Creates/updates category items in all locales
+2. **Sync Cities** – Creates/updates city items in all locales
 3. **Build ID Mappings** – Maps external IDs to Webflow item IDs
 4. **Sync Studios** – Creates/updates studio items with category & city references
-5. **Cleanup** – Removes items from Webflow that no longer exist in the source DB
+5. **Cleanup** – Removes orphaned items and cleans up dangling references
 
-**Example Response:**
+### Individual Sync Endpoints
+
+```bash
+POST /api/sync/categories   # Sync only categories
+POST /api/sync/cities       # Sync only cities
+POST /api/sync/studios      # Sync only studios
+POST /api/cleanup/all       # Run cleanup only
+```
+
+**Example Response (per-entity sync):**
 
 ```json
 {
   "success": true,
   "results": {
-    "categories": { "created": 3, "updated": 2 },
-    "cities": { "created": 2, "updated": 0 },
-    "studios": { "created": 5, "updated": 3 },
-    "cleanup": {
-      "categories": { "deleted": 0 },
-      "cities": { "deleted": 1 },
-      "studios": { "deleted": 0 }
-    }
+    "created": 3,
+    "updated": 2,
+    "published": 5,
+    "errors": [],
+    "duration": 1250
   }
 }
 ```
+
+---
+
+## Localization Support
+
+This demo supports multi-locale content synchronization using Webflow's Localization API.
+
+### How It Works
+
+1. **Webflow Site Configuration**: Enable localization in Webflow and add your desired locales (e.g., English as primary, Swedish as secondary)
+
+2. **Data Structure**: The mock database uses a nested `locales` object:
+
+```json
+{
+  "id": "cat_006",
+  "slug": "high-intensity",
+  "locales": {
+    "sv": { "name": "Högintensiv" },
+    "en": { "name": "High Intensity" }
+  }
+}
+```
+
+3. **Sync Process**:
+   - When creating a **new item**, the API creates variants for all locales at once using `createItems`
+   - Primary locale content is set during creation
+   - Secondary locales are updated with translated content using `updateItemLive`
+   - When **updating** an existing item, each locale variant is updated independently
+
+### Locale Mapping
+
+The sync maps Webflow locale tags to database locale keys:
+
+| Webflow Tag   | DB Locale |
+| ------------- | --------- |
+| `sv-SE`, `sv` | `sv`      |
+| `en-US`, `en` | `en`      |
+
+### Adding More Locales
+
+1. Add the locale in `src/db/index.ts`:
+
+   ```typescript
+   export type SupportedLocale = "sv" | "en" | "de";
+   export const SUPPORTED_LOCALES: SupportedLocale[] = ["sv", "en", "de"];
+   ```
+
+2. Update the mapping function in `src/webflow/client.ts`:
+
+   ```typescript
+   const mapping: Record<string, SupportedLocale> = {
+     "sv-SE": "sv",
+     "en-US": "en",
+     "de-DE": "de",
+   };
+   ```
+
+3. Add translated content to your JSON files
+
+4. Enable the locale in Webflow Designer
+
+### Important: API Limitations
+
+- **New locales on existing items**: The Webflow API cannot add new locales to items that already exist. If you add a new locale to your site, existing items must have the locale added manually in Webflow Designer before syncing.
+
+- **Locale-specific publishing**: Each locale maintains its own publishing state. Changes in one locale don't affect others.
 
 ---
 
@@ -242,19 +322,50 @@ const webflowCategoryIds = studio.categoryIds
    });
    ```
 
-3. Add mock data in `src/db/`
+3. Add mock data in `src/db/` with localized structure
 
 4. Create a sync function in `src/sync/`
 
 5. Update `syncAll()` to include your collection
 
-### Modifying Mock Data
+### Mock Data Structure (with Localization)
 
 Edit the JSON files in `src/db/`:
 
-- `categories.json` – Categories with `id`, `name`, `slug`
-- `cities.json` – Cities with `id`, `name`, `slug`
-- `studios.json` – Studios with full data including `categoryIds` array
+**categories.json / cities.json:**
+
+```json
+{
+  "id": "cat_001",
+  "slug": "barre",
+  "locales": {
+    "sv": { "name": "Barre" },
+    "en": { "name": "Barre" }
+  }
+}
+```
+
+**studios.json:**
+
+```json
+{
+  "id": "studio_001",
+  "slug": "bruce-studios-vasastan",
+  "address": "Odengatan 42",
+  "city": "city_stockholm",
+  "categoryIds": ["cat_009", "cat_011"],
+  "locales": {
+    "sv": {
+      "name": "Bruce Studios Vasastan",
+      "description": "Ett premium träningscenter..."
+    },
+    "en": {
+      "name": "Bruce Studios Vasastan",
+      "description": "A premium fitness center..."
+    }
+  }
+}
+```
 
 ---
 
@@ -268,6 +379,8 @@ Edit the JSON files in `src/db/`:
 
 - **Publishing:** After syncing collections, the site is published automatically. CMS item changes are visible immediately in the Designer and on published sites.
 
+- **Localization:** Cannot add new locales to existing items via API. Add locales manually in Webflow first.
+
 ### External ID Pattern
 
 Always include an `external-id` field in your collections. This provides:
@@ -280,11 +393,11 @@ Always include an `external-id` field in your collections. This provides:
 
 ## Scripts
 
-| Command         | Description                              |
-| --------------- | ---------------------------------------- |
-| `npm run dev`   | Start development server with hot reload |
-| `npm run build` | Compile TypeScript to JavaScript         |
-| `npm start`     | Run production server                    |
+| Command      | Description                              |
+| ------------ | ---------------------------------------- |
+| `pnpm dev`   | Start development server with hot reload |
+| `pnpm build` | Compile TypeScript to JavaScript         |
+| `pnpm start` | Run production server                    |
 
 ---
 
