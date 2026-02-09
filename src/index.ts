@@ -6,7 +6,7 @@ import { getAllCategories, getAllCities, getAllStudios } from "./db/index.js";
 import { getCityIdMap, syncAllCities } from "./sync/cities.js";
 import { syncAllStudios } from "./sync/studios.js";
 import { syncAll } from "./sync/index.js";
-import { cleanupAll } from "./sync/cleanup.js";
+import { cleanupAll, purgeAllCollections } from "./sync/cleanup.js";
 
 const app = new Hono();
 
@@ -40,6 +40,22 @@ app.post("/api/cleanup/all", async (c) => {
       {
         success: false,
         error: error instanceof Error ? error.message : "Sync failed",
+      },
+      500,
+    );
+  }
+});
+
+// ⚠️ DANGER: Purge ALL items from ALL collections (cannot be undone!)
+app.post("/api/purge/all", async (c) => {
+  try {
+    const results = await purgeAllCollections();
+    return c.json({ success: true, results });
+  } catch (error) {
+    return c.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Purge failed",
       },
       500,
     );

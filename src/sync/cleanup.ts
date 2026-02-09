@@ -305,8 +305,109 @@ export async function cleanupAll(
     0;
 
   console.log(
-    `Cleanup: ${totalDeleted} deleted, ${totalRefs} refs removed${hasErrors ? " (with errors)" : ""}`,
+    `   ✅ Cleanup: ${totalDeleted} deleted, ${totalRefs} refs removed${hasErrors ? " (with errors)" : ""}`,
   );
 
   return result;
+}
+
+type PurgeResult = {
+  collection: string;
+  deleted: number;
+  errors: string[];
+};
+
+type PurgeAllResult = {
+  studios: PurgeResult;
+  cities: PurgeResult;
+  categories: PurgeResult;
+  totalDeleted: number;
+};
+
+/**
+ * Delete ALL items from a single collection.
+ * Removes from both live and staged to completely purge items.
+ */
+async function purgeCollection(collectionSlug: string): Promise<PurgeResult> {
+  const result: PurgeResult = {
+    collection: collectionSlug,
+    deleted: 0,
+    errors: [],
+  };
+
+  const collection = await findCollectionBySlug(
+    webflowConfig.siteId,
+    collectionSlug,
+  );
+  if (!collection) {
+    result.errors.push(`Collection "${collectionSlug}" not found`);
+    return result;
+  }
+
+  const localeIds = await getLocaleIds();
+  const items = await getWebflowItems(collection.id);
+
+  if (items.length === 0) {
+    console.log(`   ⏭️  ${collectionSlug}: No items to delete`);
+    return result;
+  }
+
+  try {
+    // Delete from live first (unpublishes)
+    await webflow.collections.items.deleteItemsLive(collection.id, {
+      items: items.map((item) => ({
+        id: item.id,
+        cmsLocaleIds: localeIds,
+      })),
+    });
+
+    // Then delete from staged (removes drafts)
+    await webflow.collections.items.deleteItems(collection.id, {
+      items: items.map((item) => ({
+        id: item.id,
+        cmsLocaleIds: localeIds,
+      })),
+    });
+
+    result.deleted = items.length;
+    console.log(`   🗑️  ${collectionSlug}: Deleted ${items.length} items`);
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    result.errors.push(`Failed to delete items: ${errorMsg}`);
+    console.error(`   ❌ ${collectionSlug}: ${errorMsg}`);
+  }
+
+  return result;
+}
+
+/**
+ * Purge ALL items from ALL collections.
+ *
+ * ⚠️ WARNING: This is destructive and cannot be undone!
+ *
+ * Order of deletion:
+ * 1. Studios (references Cities and Categories)
+ * 2. Cities (no remaining references)
+ * 3. Categories (no remaining references)
+ */
+export async function purgeAllCollections(): Promise<PurgeAllResult> {
+  console.log("\n🗑️  Purging all collections...");
+
+  // Delete in order: Studios first (has references), then Cities, then Categories
+  const studios = await purgeCollection(webflowConfig.collectionSlugs.studios);
+  const cities = await purgeCollection(webflowConfig.collectionSlugs.cities);
+  const categories = await purgeCollection(
+    webflowConfig.collectionSlugs.categories,
+  );
+
+  const totalDeleted = studios.deleted + cities.deleted + categories.deleted;
+
+  console.log(`\n✅ Purge complete: ${totalDeleted} total items deleted`);
+
+  return {
+    studios,
+    cities,
+    categories,
+    totalDeleted,
+  };
 }
