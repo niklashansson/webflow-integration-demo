@@ -1,20 +1,5 @@
 import type { CollectionSchema } from "../utils/schema.js";
 
-// ────────────────────────────────────────────────────────────────
-// Collection Schemas — Single Source of Truth
-//
-// These schemas define the full structure of each Webflow CMS
-// collection. The schema sync engine uses these to:
-//   - Create collections if they don't exist
-//   - Add missing fields
-//   - Validate field types match
-//   - Remove unused fields
-//
-// Field slugs: Use the logical name (e.g. "category"). The sync
-// engine handles the Webflow "-2" suffix if a previous field with
-// the same slug was deleted.
-// ────────────────────────────────────────────────────────────────
-
 export const categoriesSchema: CollectionSchema = {
   displayName: "Categories",
   singularName: "Category",

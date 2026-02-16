@@ -16,12 +16,12 @@ import { categoriesSchema } from "../webflow/schemas.js";
  * from the cached collection resolver.
  */
 export async function syncCategoriesToWebflow(categories: Category[]) {
-  const { categories: col } = await resolveCollections();
-  const s = (desired: string) => col.slugMap.get(desired) ?? desired;
+  const { categories: collection } = await resolveCollections();
+  const s = (desired: string) => collection.slugMap.get(desired) ?? desired;
 
   return syncCollection(
     {
-      collectionId: col.id,
+      collectionId: collection.id,
       entityName: "Categories",
       siteId: webflowConfig.siteId,
       items: categories,

@@ -16,12 +16,12 @@ import { citiesSchema } from "../webflow/schemas.js";
  * from the cached collection resolver.
  */
 export async function syncCitiesToWebflow(cities: City[]) {
-  const { cities: col } = await resolveCollections();
-  const s = (desired: string) => col.slugMap.get(desired) ?? desired;
+  const { cities: collection } = await resolveCollections();
+  const s = (desired: string) => collection.slugMap.get(desired) ?? desired;
 
   return syncCollection(
     {
-      collectionId: col.id,
+      collectionId: collection.id,
       entityName: "Cities",
       siteId: webflowConfig.siteId,
       items: cities,

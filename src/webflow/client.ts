@@ -26,9 +26,7 @@ export const webflow = new WebflowClient({
 // Shared rate-limited scheduler for all API calls (60 req/min)
 export const schedule = createRateLimiter();
 
-// ── Collection resolution ──────────────────────────────────────
 // Resolved lazily on first access and cached for the process lifetime.
-// Eliminates the need for WEBFLOW_COLLECTION_* env vars.
 
 type ResolvedCollections = {
   categories: { id: string; slugMap: Map<string, string> };
