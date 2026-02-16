@@ -26,8 +26,6 @@ WEBFLOW_ACCESS_TOKEN=   # API token from Webflow dashboard → Site Settings →
 WEBFLOW_SITE_ID=        # Site ID from Webflow Dashboard → Site Settings → General
 ```
 
-> That's it — collection IDs are resolved automatically by matching schema-defined slugs against your Webflow site.
-
 ---
 
 ## Webflow CMS Concepts
@@ -46,10 +44,10 @@ A few things about the Webflow CMS API that aren't obvious:
 When you delete a Webflow field and recreate it with the same name, Webflow doesn't reuse the old slug. Instead it appends `-2`, `-3`, etc:
 
 ```
-"latitude" → delete → recreate → "latitude-2"
+"field" → delete → recreate → "field-2"
 ```
 
-This is permanent — you can't rename the slug back. The sync engine handles this automatically by matching fields using a pattern (`latitude` matches `latitude-2`) and resolving the actual slug before sending data.
+This is permanent — you can't rename the slug back. The sync engine handles this automatically by matching fields using a pattern (`field` matches `field-2`) and resolving the actual slug before sending data.
 
 ### Locales
 
@@ -58,7 +56,6 @@ Webflow supports multi-locale sites. Each CMS item has one variant per locale, a
 - **Create**: pass `cmsLocaleIds` to create variants for all locales in one call.
 - **Update**: each locale variant is a separate entry in the update payload (`{ id, cmsLocaleId, fieldData }`).
 - **Delete/Publish**: you **must** pass `cmsLocaleIds` explicitly. Without it, Webflow only affects the primary locale — secondary locale variants and their slugs persist as ghosts.
-- **Slug in updates**: don't send `slug` in update payloads. Webflow validates slug uniqueness across all entries in the batch, so sending the same slug for multiple locale variants of the same item causes a conflict.
 
 ### References
 
@@ -241,12 +238,13 @@ export const productsSchema: CollectionSchema = {
 
 ```typescript
 export async function syncProductsToWebflow(products: Product[]) {
-  const cols = await resolveCollections();
-  const s = (desired: string) => cols.products.slugMap.get(desired) ?? desired;
+  const collections = await resolveCollections();
+  const s = (desired: string) =>
+    collections.products.slugMap.get(desired) ?? desired;
 
   return syncCollection(
     {
-      collectionId: cols.products.id,
+      collectionId: collections.products.id,
       siteId: webflowConfig.siteId,
       items: products,
       schema: productsSchema,
@@ -277,8 +275,9 @@ export async function syncProductsToWebflow(products: Product[]) {
 Field slug resolution is handled automatically by `resolveCollections()`. The resolver caches both collection IDs and slug maps — resolved once, reused everywhere:
 
 ```typescript
-const cols = await resolveCollections();
-const s = (desired: string) => cols.studios.slugMap.get(desired) ?? desired;
+const collections = await resolveCollections();
+const s = (desired: string) =>
+  collections.studios.slugMap.get(desired) ?? desired;
 
 // s() resolves the actual Webflow slug:
 return {

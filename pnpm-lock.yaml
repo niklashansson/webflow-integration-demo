@@ -11,9 +11,6 @@ importers:
       '@hono/node-server':
         specifier: ^1.19.9
         version: 1.19.9(hono@4.11.7)
-      '@niklashansson/webflow-sync':
-        specifier: link:../bloomweb/webflow-sync
-        version: link:../bloomweb/webflow-sync
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3

@@ -16,35 +16,39 @@ import { getStudiosSchema } from "../webflow/schemas.js";
  * from the cached collection resolver.
  */
 export async function syncStudiosToWebflow(studios: Studio[]) {
-  const cols = await resolveCollections();
-  const s = (desired: string) => cols.studios.slugMap.get(desired) ?? desired;
+  const collections = await resolveCollections();
+  const s = (desired: string) =>
+    collections.studios.slugMap.get(desired) ?? desired;
 
   // Resolve reference IDs: local ID → Webflow item ID
   const [categoryIdMap, cityIdMap] = await Promise.all([
     getIdMap(
-      cols.categories.id,
+      collections.categories.id,
       webflow,
       webflowConfig.siteId,
-      cols.categories.slugMap.get("external-id") ?? "external-id",
+      collections.categories.slugMap.get("external-id") ?? "external-id",
       schedule,
     ),
     getIdMap(
-      cols.cities.id,
+      collections.cities.id,
       webflow,
       webflowConfig.siteId,
-      cols.cities.slugMap.get("external-id") ?? "external-id",
+      collections.cities.slugMap.get("external-id") ?? "external-id",
       schedule,
     ),
   ]);
 
   return syncCollection(
     {
-      collectionId: cols.studios.id,
+      collectionId: collections.studios.id,
       entityName: "Studios",
       siteId: webflowConfig.siteId,
       items: studios,
       identifierField: s("external-id"),
-      schema: getStudiosSchema(cols.categories.id, cols.cities.id),
+      schema: getStudiosSchema(
+        collections.categories.id,
+        collections.cities.id,
+      ),
       buildFieldData: (studio, webflowLocaleTag) => {
         // Resolve city reference with warning if not found
         const cityWebflowId = cityIdMap.get(studio.city);

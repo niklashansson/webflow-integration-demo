@@ -42,14 +42,14 @@ export async function cleanupAll(
   cityIds: Set<string>,
   studioIds: Set<string>,
 ): Promise<CleanupAllResult> {
-  const cols = await resolveCollections();
+  const collections = await resolveCollections();
 
   const catIdentifier =
-    cols.categories.slugMap.get("external-id") ?? "external-id";
+    collections.categories.slugMap.get("external-id") ?? "external-id";
   const cityIdentifier =
-    cols.cities.slugMap.get("external-id") ?? "external-id";
+    collections.cities.slugMap.get("external-id") ?? "external-id";
   const studioIdentifier =
-    cols.studios.slugMap.get("external-id") ?? "external-id";
+    collections.studios.slugMap.get("external-id") ?? "external-id";
 
   const result: CleanupAllResult = {
     categories: emptyCleanupResult(),
@@ -59,7 +59,7 @@ export async function cleanupAll(
 
   // Step 1: Delete orphaned Studios
   result.studios = await cleanupDeletedItems(
-    cols.studios.id,
+    collections.studios.id,
     studioIds,
     webflow,
     webflowConfig.siteId,
@@ -70,7 +70,7 @@ export async function cleanupAll(
   // Step 2: Find Cities and Categories that will be deleted (parallel)
   const [cityIdsToDelete, categoryIdsToDelete] = await Promise.all([
     getOrphanedItems(
-      cols.cities.id,
+      collections.cities.id,
       cityIds,
       webflow,
       webflowConfig.siteId,
@@ -78,7 +78,7 @@ export async function cleanupAll(
       schedule,
     ),
     getOrphanedItems(
-      cols.categories.id,
+      collections.categories.id,
       categoryIds,
       webflow,
       webflowConfig.siteId,
@@ -95,12 +95,12 @@ export async function cleanupAll(
     ]);
 
     // Use resolved slugs for reference field IDs
-    const cityFieldSlug = cols.studios.slugMap.get("city") ?? "city";
+    const cityFieldSlug = collections.studios.slugMap.get("city") ?? "city";
     const categoriesFieldSlug =
-      cols.studios.slugMap.get("categories") ?? "categories";
+      collections.studios.slugMap.get("categories") ?? "categories";
 
     const refResult = await removeReferencesToItems(
-      cols.studios.id,
+      collections.studios.id,
       [
         { fieldId: cityFieldSlug, isMulti: false },
         { fieldId: categoriesFieldSlug, isMulti: true },
@@ -117,7 +117,7 @@ export async function cleanupAll(
 
   // Step 4: Delete orphaned Cities
   const citiesCleanup = await cleanupDeletedItems(
-    cols.cities.id,
+    collections.cities.id,
     cityIds,
     webflow,
     webflowConfig.siteId,
@@ -131,7 +131,7 @@ export async function cleanupAll(
 
   // Step 5: Delete orphaned Categories
   const categoriesCleanup = await cleanupDeletedItems(
-    cols.categories.id,
+    collections.categories.id,
     categoryIds,
     webflow,
     webflowConfig.siteId,
