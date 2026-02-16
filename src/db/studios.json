@@ -1,121 +1,221 @@
 [
   {
     "id": "studio_001",
-    "slug": "bruce-studios-vasastan",
-    "address": "Odengatan 42",
+    "slug": "bruce-gym-vasastan",
+    "address": "Sveavägen 98",
     "city": "city_001",
-    "heroImageUrl": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1200",
-    "lat": "59.3426",
-    "lng": "18.0549",
-    "categoryIds": ["cat_009", "cat_011"],
-    "locales": {
+    "heroImageUrl": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200",
+    "lat": "59.342090",
+    "lng": "18.056414",
+    "categoryIds": ["cat_005", "cat_013"],
+    "translations": {
       "sv": {
-        "name": "Bruce Studios Vasastan",
-        "description": "Ett premium padelhall i hjärtat av Vasastan med 6 banor och toppmodern utrustning. Här möts passion för padel med skandinavisk design."
+        "name": "Bruce Gym Vasastan",
+        "description": "Modernt gym med toppmodern utrustning och personliga tränare. Öppet tidigt till sent för din bekvämlighet."
       },
       "en": {
-        "name": "Bruce Studios Vasastan",
-        "description": "A premium padel hall in the heart of Vasastan with 6 courts and state-of-the-art equipment. Here, the passion for padel meets Scandinavian design."
+        "name": "Bruce Gym Vasastan",
+        "description": "Modern gym with state-of-the-art equipment and personal trainers. Open early to late for your convenience."
       }
     }
   },
   {
     "id": "studio_002",
-    "slug": "bruce-studios-sodermalm",
-    "address": "Götgatan 78",
+    "slug": "bruce-yoga-sodermalm",
+    "address": "Hornsgatan 64",
     "city": "city_001",
-    "heroImageUrl": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200",
-    "lat": "59.3151",
-    "lng": "18.0736",
-    "categoryIds": ["cat_005", "cat_009", "cat_013", "cat_015"],
-    "locales": {
+    "heroImageUrl": "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=1200",
+    "lat": "59.317220",
+    "lng": "18.057150",
+    "categoryIds": ["cat_015", "cat_010"],
+    "translations": {
       "sv": {
-        "name": "Bruce Studios Södermalm",
-        "description": "Vår flaggskeppsanläggning på Södermalm erbjuder 8 banor, restaurang och recovery-zon. Perfekt för både nybörjare och proffs."
+        "name": "Bruce Yoga Södermalm",
+        "description": "Lugn yogastudio med erfarna instruktörer. Yoga och pilates i fridfull miljö på Södermalm."
       },
       "en": {
-        "name": "Bruce Studios Södermalm",
-        "description": "Our flagship facility in Södermalm offers 8 courts, a restaurant, and a recovery zone. Perfect for both beginners and pros."
+        "name": "Bruce Yoga Södermalm",
+        "description": "Peaceful yoga studio with experienced instructors. Yoga and pilates in a tranquil Södermalm setting."
       }
     }
   },
   {
     "id": "studio_003",
-    "slug": "bruce-studios-kungsholmen",
-    "address": "Fleminggatan 18",
+    "slug": "bruce-crossfit-ostermalm",
+    "address": "Karlavägen 60",
     "city": "city_001",
-    "heroImageUrl": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1200",
-    "lat": "59.3327",
-    "lng": "18.0347",
-    "categoryIds": ["cat_006", "cat_013"],
-    "locales": {
+    "heroImageUrl": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1200",
+    "lat": "59.339530",
+    "lng": "18.081760",
+    "categoryIds": ["cat_003", "cat_006"],
+    "translations": {
       "sv": {
-        "name": "Bruce Studios Kungsholmen",
-        "description": "Modern anläggning nära Fridhemsplan med 5 banor och flexibla öppettider. Boka enkelt via appen."
+        "name": "Bruce CrossFit Östermalm",
+        "description": "CrossFit-box med all utrustning för funktionell träning. Gruppklasser och open gym i hjärtat av Östermalm."
       },
       "en": {
-        "name": "Bruce Studios Kungsholmen",
-        "description": "Modern facility near Fridhemsplan with 5 courts and flexible opening hours. Book easily via the app."
+        "name": "Bruce CrossFit Östermalm",
+        "description": "CrossFit box fully equipped for functional training. Group classes and open gym in the heart of Östermalm."
       }
     }
   },
   {
     "id": "studio_004",
-    "slug": "bruce-studios-goteborg",
-    "address": "Avenyn 25",
+    "slug": "bruce-padel-heden",
+    "address": "Södra Vägen 11",
     "city": "city_002",
-    "heroImageUrl": "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200",
-    "lat": "57.6969",
-    "lng": "11.9746",
-    "categoryIds": ["cat_009", "cat_010", "cat_015"],
-    "locales": {
+    "heroImageUrl": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1200",
+    "lat": "57.699390",
+    "lng": "11.982780",
+    "categoryIds": ["cat_009", "cat_011"],
+    "translations": {
       "sv": {
-        "name": "Bruce Studios Göteborg",
-        "description": "Vår första anläggning på västkusten. 6 banor med havsutsikt och Göteborgs bästa padelmiljö."
+        "name": "Bruce Padel Heden",
+        "description": "Premium padelhall vid Heden med åtta professionella banor och bokningssystem."
       },
       "en": {
-        "name": "Bruce Studios Gothenburg",
-        "description": "Our first facility on the west coast. 6 courts with sea views and Gothenburg's best padel environment."
+        "name": "Bruce Padel Heden",
+        "description": "Premium padel hall at Heden with eight professional courts and booking system."
       }
     }
   },
   {
     "id": "studio_005",
-    "slug": "bruce-studios-malmo",
-    "address": "Stortorget 12",
-    "city": "city_003",
-    "heroImageUrl": "https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?w=1200",
-    "lat": "55.6059",
-    "lng": "13.0007",
-    "categoryIds": ["cat_001", "cat_004", "cat_010", "cat_015"],
-    "locales": {
+    "slug": "bruce-gym-linne",
+    "address": "Linnégatan 34",
+    "city": "city_002",
+    "heroImageUrl": "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=1200",
+    "lat": "57.699420",
+    "lng": "11.956210",
+    "categoryIds": ["cat_005", "cat_013", "cat_006"],
+    "translations": {
       "sv": {
-        "name": "Bruce Studios Malmö",
-        "description": "Centralt belägen i Malmö med 4 banor och café. Perfekt för en match efter jobbet."
+        "name": "Bruce Gym Linné",
+        "description": "Fullt utrustat gym i Linnéstaden med styrketräning, högintensiv träning och personlig coaching."
       },
       "en": {
-        "name": "Bruce Studios Malmoe",
-        "description": "Centrally located in Malmoe with 4 courts and a café. Perfect for a match after work."
+        "name": "Bruce Gym Linné",
+        "description": "Fully equipped gym in Linnéstaden with strength training, high intensity workouts and personal coaching."
       }
     }
   },
   {
     "id": "studio_006",
-    "slug": "bruce-studios-uppsala",
-    "address": "Svartbäcksgatan 8",
-    "city": "city_004",
-    "heroImageUrl": null,
-    "lat": "59.8586",
-    "lng": "17.6389",
-    "categoryIds": ["cat_005", "cat_007", "cat_008", "cat_012"],
-    "locales": {
+    "slug": "bruce-klattring-majorna",
+    "address": "Mariaplan 1",
+    "city": "city_002",
+    "heroImageUrl": "https://images.unsplash.com/photo-1558611848-73f7eb4001a1?w=1200",
+    "lat": "57.694610",
+    "lng": "11.924290",
+    "categoryIds": ["cat_008", "cat_014"],
+    "translations": {
       "sv": {
-        "name": "Bruce Studios Uppsala",
-        "description": "Studentvänlig anläggning nära centrum med 4 banor och förmånliga medlemspriser."
+        "name": "Bruce Klättring Majorna",
+        "description": "Klättringscenter med bouldering och topprep i Majorna. Kurser för alla nivåer."
       },
       "en": {
-        "name": "Bruce Studios Uppsala",
-        "description": "Student-friendly facility near the city center with 4 courts and favorable membership prices."
+        "name": "Bruce Climbing Majorna",
+        "description": "Climbing center with bouldering and top rope in Majorna. Courses for all levels."
+      }
+    }
+  },
+  {
+    "id": "studio_007",
+    "slug": "bruce-kampsport-mollan",
+    "address": "Bergsgatan 20",
+    "city": "city_003",
+    "heroImageUrl": "https://images.unsplash.com/photo-1549576490-b0b4831ef60a?w=1200",
+    "lat": "55.590920",
+    "lng": "13.007560",
+    "categoryIds": ["cat_007", "cat_006"],
+    "translations": {
+      "sv": {
+        "name": "Bruce Kampsport Möllan",
+        "description": "Kampsportscenter vid Möllevångstorget med boxning, kickboxning och MMA. Professionella tränare."
+      },
+      "en": {
+        "name": "Bruce Martial Arts Möllan",
+        "description": "Martial arts center at Möllevångstorget with boxing, kickboxing and MMA. Professional coaches."
+      }
+    }
+  },
+  {
+    "id": "studio_008",
+    "slug": "bruce-simhall-vastra-hamnen",
+    "address": "Stora Varvsgatan 15",
+    "city": "city_003",
+    "heroImageUrl": "https://images.unsplash.com/photo-1576678927484-cc907957088c?w=1200",
+    "lat": "55.613850",
+    "lng": "12.977080",
+    "categoryIds": ["cat_012", "cat_002"],
+    "translations": {
+      "sv": {
+        "name": "Bruce Simhall Västra Hamnen",
+        "description": "Modern simhall i Västra Hamnen med 25-metersbassäng och bastu. Perfekt för simning och vattenträning."
+      },
+      "en": {
+        "name": "Bruce Swimming Västra Hamnen",
+        "description": "Modern swimming facility in Västra Hamnen with 25-meter pool and sauna. Perfect for swimming and water training."
+      }
+    }
+  },
+  {
+    "id": "studio_009",
+    "slug": "bruce-dans-davidshall",
+    "address": "Davidshallsgatan 12",
+    "city": "city_003",
+    "heroImageUrl": "https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=1200",
+    "lat": "55.595640",
+    "lng": "12.994280",
+    "categoryIds": ["cat_004", "cat_001"],
+    "translations": {
+      "sv": {
+        "name": "Bruce Dans Davidshall",
+        "description": "Dansstudio i centrala Malmö med barre och moderna dansklasser. Professionella golv och instruktörer."
+      },
+      "en": {
+        "name": "Bruce Dance Davidshall",
+        "description": "Dance studio in central Malmö with barre and modern dance classes. Professional floors and instructors."
+      }
+    }
+  },
+  {
+    "id": "studio_010",
+    "slug": "bruce-gym-centrum-uppsala",
+    "address": "Kungsgatan 55",
+    "city": "city_004",
+    "heroImageUrl": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1200",
+    "lat": "59.858780",
+    "lng": "17.638880",
+    "categoryIds": ["cat_005", "cat_013", "cat_003"],
+    "translations": {
+      "sv": {
+        "name": "Bruce Gym Centrum Uppsala",
+        "description": "Centralt beläget gym i Uppsala med modern utrustning, CrossFit-yta och styrketräning."
+      },
+      "en": {
+        "name": "Bruce Gym Centrum Uppsala",
+        "description": "Centrally located gym in Uppsala with modern equipment, CrossFit area and strength training."
+      }
+    }
+  },
+  {
+    "id": "studio_011",
+    "slug": "bruce-yoga-luthagen",
+    "address": "Sysslomansgatan 8",
+    "city": "city_004",
+    "heroImageUrl": "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200",
+    "lat": "59.865210",
+    "lng": "17.622540",
+    "categoryIds": ["cat_015", "cat_010", "cat_002"],
+    "translations": {
+      "sv": {
+        "name": "Bruce Yoga Luthagen",
+        "description": "Yogastudio och pilates i lugna Luthagen. Bastu och recovery ingår i alla medlemskap."
+      },
+      "en": {
+        "name": "Bruce Yoga Luthagen",
+        "description": "Yoga studio and pilates in peaceful Luthagen. Sauna and recovery included in all memberships."
       }
     }
   }

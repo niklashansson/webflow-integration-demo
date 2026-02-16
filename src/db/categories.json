@@ -2,15 +2,31 @@
   {
     "id": "cat_001",
     "slug": "barre",
-    "locales": {
+    "translations": {
       "sv": { "name": "Barre" },
       "en": { "name": "Barre" }
     }
   },
   {
+    "id": "cat_002",
+    "slug": "bastu",
+    "translations": {
+      "sv": { "name": "Bastu" },
+      "en": { "name": "Sauna" }
+    }
+  },
+  {
+    "id": "cat_003",
+    "slug": "crossfit",
+    "translations": {
+      "sv": { "name": "CrossFit" },
+      "en": { "name": "CrossFit" }
+    }
+  },
+  {
     "id": "cat_004",
     "slug": "dans",
-    "locales": {
+    "translations": {
       "sv": { "name": "Dans" },
       "en": { "name": "Dance" }
     }
@@ -18,7 +34,7 @@
   {
     "id": "cat_005",
     "slug": "gym",
-    "locales": {
+    "translations": {
       "sv": { "name": "Gym" },
       "en": { "name": "Gym" }
     }
@@ -26,7 +42,7 @@
   {
     "id": "cat_006",
     "slug": "hogintensiv",
-    "locales": {
+    "translations": {
       "sv": { "name": "Högintensiv" },
       "en": { "name": "High Intensity" }
     }
@@ -34,7 +50,7 @@
   {
     "id": "cat_007",
     "slug": "kampsport",
-    "locales": {
+    "translations": {
       "sv": { "name": "Kampsport" },
       "en": { "name": "Martial Arts" }
     }
@@ -42,7 +58,7 @@
   {
     "id": "cat_008",
     "slug": "klattring",
-    "locales": {
+    "translations": {
       "sv": { "name": "Klättring" },
       "en": { "name": "Climbing" }
     }
@@ -50,7 +66,7 @@
   {
     "id": "cat_009",
     "slug": "padel",
-    "locales": {
+    "translations": {
       "sv": { "name": "Padel" },
       "en": { "name": "Padel" }
     }
@@ -58,7 +74,7 @@
   {
     "id": "cat_010",
     "slug": "pilates",
-    "locales": {
+    "translations": {
       "sv": { "name": "Pilates" },
       "en": { "name": "Pilates" }
     }
@@ -66,7 +82,7 @@
   {
     "id": "cat_011",
     "slug": "racketsport",
-    "locales": {
+    "translations": {
       "sv": { "name": "Racketsport" },
       "en": { "name": "Racquet Sports" }
     }
@@ -74,7 +90,7 @@
   {
     "id": "cat_012",
     "slug": "simning",
-    "locales": {
+    "translations": {
       "sv": { "name": "Simning" },
       "en": { "name": "Swimming" }
     }
@@ -82,7 +98,7 @@
   {
     "id": "cat_013",
     "slug": "styrka",
-    "locales": {
+    "translations": {
       "sv": { "name": "Styrka" },
       "en": { "name": "Strength" }
     }
@@ -90,7 +106,7 @@
   {
     "id": "cat_014",
     "slug": "utomhus",
-    "locales": {
+    "translations": {
       "sv": { "name": "Utomhus" },
       "en": { "name": "Outdoor" }
     }
@@ -98,8 +114,8 @@
   {
     "id": "cat_015",
     "slug": "yoga",
-    "locales": {
-      "sv": { "name": "Yogaa" },
+    "translations": {
+      "sv": { "name": "Yoga" },
       "en": { "name": "Yoga" }
     }
   }

@@ -44,13 +44,13 @@ const studiosFields = [
     {
         id: "latitude",
         displayName: "Latitude",
-        type: "Number",
+        type: "PlainText",
         isRequired: false,
     },
     {
         id: "longitude",
         displayName: "Longitude",
-        type: "Number",
+        type: "PlainText",
         isRequired: false,
     },
     {

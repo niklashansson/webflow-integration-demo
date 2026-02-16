@@ -2,7 +2,7 @@
   {
     "id": "city_001",
     "slug": "stockholm",
-    "locales": {
+    "translations": {
       "sv": { "name": "Stockholm" },
       "en": { "name": "Stockholm" }
     }
@@ -10,7 +10,7 @@
   {
     "id": "city_002",
     "slug": "goteborg",
-    "locales": {
+    "translations": {
       "sv": { "name": "Göteborg" },
       "en": { "name": "Gothenburg" }
     }
@@ -18,7 +18,7 @@
   {
     "id": "city_003",
     "slug": "malmo",
-    "locales": {
+    "translations": {
       "sv": { "name": "Malmö" },
       "en": { "name": "Malmoe" }
     }
@@ -26,7 +26,7 @@
   {
     "id": "city_004",
     "slug": "uppsala",
-    "locales": {
+    "translations": {
       "sv": { "name": "Uppsala" },
       "en": { "name": "Uppsala" }
     }

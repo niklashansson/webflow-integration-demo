@@ -1,22 +1,34 @@
 [
     {
         "id": "city_001",
-        "name": "Stockholm",
-        "slug": "stockholm"
+        "slug": "stockholm",
+        "locales": {
+            "sv": { "name": "Stockholm" },
+            "en": { "name": "Stockholm" }
+        }
     },
     {
         "id": "city_002",
-        "name": "Göteborg",
-        "slug": "goteborg"
+        "slug": "goteborg",
+        "locales": {
+            "sv": { "name": "Göteborg" },
+            "en": { "name": "Gothenburg" }
+        }
     },
     {
         "id": "city_003",
-        "name": "Malmö",
-        "slug": "malmo"
+        "slug": "malmo",
+        "locales": {
+            "sv": { "name": "Malmö" },
+            "en": { "name": "Malmoe" }
+        }
     },
     {
         "id": "city_004",
-        "name": "Uppsala",
-        "slug": "uppsala"
+        "slug": "uppsala",
+        "locales": {
+            "sv": { "name": "Uppsala" },
+            "en": { "name": "Uppsala" }
+        }
     }
 ]

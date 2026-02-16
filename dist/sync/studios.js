@@ -1,69 +1,49 @@
-import { webflow, findCollectionBySlug, getItemByExternalId, } from "../webflow/client.js";
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-// Sync a single studio to Webflow CMS
-export async function syncStudioToWebflow(siteId, studio, categoryIdMap, cityIdMap) {
-    const collection = await findCollectionBySlug(siteId, "studios");
-    if (!collection)
-        throw new Error("Studios collection not found");
-    const existingItem = await getItemByExternalId(collection.id, studio.id, studio.slug);
-    // Resolve references
-    const webflowCategoryIds = [];
-    if (categoryIdMap && studio.categoryIds) {
-        for (const catId of studio.categoryIds) {
-            const webflowId = categoryIdMap.get(catId);
-            if (webflowId)
-                webflowCategoryIds.push(webflowId);
+import { webflowConfig } from "../webflow/client.js";
+import {} from "../db/index.js";
+import { syncCollection } from "./utils.js";
+/**
+ * Build studio field data for a specific locale.
+ * Logs warnings when referenced IDs are not found in Webflow.
+ */
+function buildStudioFieldData(studio, locale, deps) {
+    // Resolve city reference with warning if not found
+    const cityWebflowId = deps.cityIdMap.get(studio.city);
+    if (!cityWebflowId && studio.city) {
+        console.warn(`   ⚠️ City "${studio.city}" not found in Webflow for studio "${studio.id}"`);
+    }
+    // Resolve category references with warnings for any not found
+    const categoryWebflowIds = [];
+    for (const categoryId of studio.categoryIds) {
+        const webflowId = deps.categoryIdMap.get(categoryId);
+        if (webflowId) {
+            categoryWebflowIds.push(webflowId);
+        }
+        else {
+            console.warn(`   ⚠️ Category "${categoryId}" not found in Webflow for studio "${studio.id}"`);
         }
     }
-    const webflowCityId = cityIdMap?.get(studio.city);
-    const fieldData = {
-        name: studio.name,
+    return {
+        name: studio.locales[locale].name,
         slug: studio.slug,
-        address: studio.address,
-        city: webflowCityId,
-        description: studio.description ?? undefined,
-        latitude: studio.lat ?? undefined,
-        longitude: studio.lng ?? undefined,
         "external-id": studio.id,
         "hero-image": studio.heroImageUrl ?? undefined,
-        categories: webflowCategoryIds,
+        address: studio.address,
+        latitude: studio.lat ?? undefined,
+        longitude: studio.lng ?? undefined,
+        city: cityWebflowId ?? undefined,
+        categories: categoryWebflowIds,
+        description: studio.locales[locale].description,
     };
-    if (existingItem) {
-        const updated = await webflow.collections.items.updateItemLive(collection.id, existingItem.id, { fieldData });
-        console.log(`✅ Updated & published studio: ${studio.name}`);
-        return { action: "updated", item: updated };
-    }
-    else {
-        const created = await webflow.collections.items.createItemLive(collection.id, { fieldData });
-        console.log(`✅ Created & published studio: ${studio.name}`);
-        return { action: "created", item: created };
-    }
 }
-// Bulk sync all studios
-export async function syncAllStudios(siteId, studios, categoryIdMap, cityIdMap) {
-    const results = {
-        created: 0,
-        updated: 0,
-        failed: 0,
-        errors: [],
-    };
-    for (const studio of studios) {
-        try {
-            const result = await syncStudioToWebflow(siteId, studio, categoryIdMap, cityIdMap);
-            if (result.action === "created")
-                results.created++;
-            else
-                results.updated++;
-            await sleep(1000);
-        }
-        catch (error) {
-            results.failed++;
-            results.errors.push({
-                studioId: studio.id,
-                error: error instanceof Error ? error.message : "Unknown error",
-            });
-            console.error(`❌ Failed to sync studio ${studio.id}:`, error);
-        }
-    }
-    return results;
+/**
+ * Sync all studios to Webflow CMS with all locales.
+ */
+export async function syncAllStudios(dbStudios, categoryIdMap, cityIdMap) {
+    const deps = { categoryIdMap, cityIdMap };
+    return syncCollection({
+        collectionSlug: webflowConfig.collectionSlugs.studios,
+        entityName: "Studios",
+        items: dbStudios,
+        buildFieldData: (studio, locale) => buildStudioFieldData(studio, locale, deps),
+    });
 }

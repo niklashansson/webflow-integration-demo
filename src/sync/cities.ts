@@ -1,33 +1,42 @@
-import { webflowConfig } from "../webflow/client.js";
-import { type City, type SupportedLocale } from "../db/index.js";
-import { syncCollection, getIdMap, type SyncResult } from "./utils.js";
-
-/**
- * Build city field data for a specific locale.
- */
-function buildCityFieldData(city: City, locale: SupportedLocale) {
-  return {
-    name: city.locales[locale].name,
-    slug: city.slug,
-    "external-id": city.id,
-  };
-}
+import {
+  webflowConfig,
+  webflow,
+  schedule,
+  resolveCollections,
+} from "../webflow/client.js";
+import { type City } from "../db/index.js";
+import { syncCollection } from "../utils/sync.js";
+import { getLocaleFromWebflowTag } from "../utils/locales.js";
+import { citiesSchema } from "../webflow/schemas.js";
 
 /**
  * Sync all cities to Webflow CMS with all locales.
+ *
+ * Collection ID and field slugs are resolved automatically
+ * from the cached collection resolver.
  */
-export async function syncAllCities(dbCities: City[]): Promise<SyncResult> {
-  return syncCollection({
-    collectionSlug: webflowConfig.collectionSlugs.cities,
-    entityName: "Cities",
-    items: dbCities,
-    buildFieldData: buildCityFieldData,
-  });
-}
+export async function syncCitiesToWebflow(cities: City[]) {
+  const { cities: col } = await resolveCollections();
+  const s = (desired: string) => col.slugMap.get(desired) ?? desired;
 
-/**
- * Build a mapping from database external IDs to Webflow item IDs.
- */
-export async function getCityIdMap(): Promise<Map<string, string>> {
-  return getIdMap(webflowConfig.collectionSlugs.cities);
+  return syncCollection(
+    {
+      collectionId: col.id,
+      entityName: "Cities",
+      siteId: webflowConfig.siteId,
+      items: cities,
+      identifierField: s("external-id"),
+      schema: citiesSchema,
+      buildFieldData: (item, webflowLocaleTag) => {
+        const locale = getLocaleFromWebflowTag(webflowLocaleTag);
+        return {
+          name: item.translations[locale].name,
+          slug: item.slug,
+          [s("external-id")]: item.id,
+        };
+      },
+    },
+    webflow,
+    schedule,
+  );
 }

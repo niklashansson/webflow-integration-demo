@@ -1,6 +1,5 @@
-import { config, upsertCollection, publishSite } from "../webflow/client.js";
+import { webflow, webflowConfig, upsertCollection, publishSite, } from "../webflow/client.js";
 import { getCategoriesSchema, getCitiesSchema, getStudiosSchema, } from "../webflow/schemas.js";
-import { webflow } from "../webflow/client.js";
 // Check if collection fields match schema and warn about mismatches
 async function validateCollectionFields(collectionId, expectedFields, collectionName) {
     const collection = await webflow.collections.get(collectionId);
@@ -33,7 +32,7 @@ export async function syncCollections() {
         // Step 1: Categories
         console.log("📁 Syncing Categories collection...");
         const categoriesSchema = getCategoriesSchema();
-        const categories = await upsertCollection(config.siteId, categoriesSchema);
+        const categories = await upsertCollection(webflowConfig.siteId, categoriesSchema);
         if (!categories.id)
             throw new Error("Failed to sync Categories collection");
         result.collections.categories = {
@@ -44,7 +43,7 @@ export async function syncCollections() {
         // Step 2: Cities
         console.log("📁 Syncing Cities collection...");
         const citiesSchema = getCitiesSchema();
-        const cities = await upsertCollection(config.siteId, citiesSchema);
+        const cities = await upsertCollection(webflowConfig.siteId, citiesSchema);
         if (!cities.id)
             throw new Error("Failed to sync Cities collection");
         result.collections.cities = {
@@ -55,7 +54,7 @@ export async function syncCollections() {
         // Step 3: Studios (depends on Categories and Cities)
         console.log("📁 Syncing Studios collection...");
         const studiosSchema = getStudiosSchema(categories.id, cities.id);
-        const studios = await upsertCollection(config.siteId, studiosSchema);
+        const studios = await upsertCollection(webflowConfig.siteId, studiosSchema);
         if (!studios.id)
             throw new Error("Failed to sync Studios collection");
         result.collections.studios = {

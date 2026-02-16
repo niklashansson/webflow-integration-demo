@@ -1,415 +1,290 @@
-# Webflow CMS Integration Demo
+# Webflow CMS Sync
 
-A demonstration of syncing data from a mock database to Webflow CMS using the official [Webflow API](https://developers.webflow.com/). Built with [Hono](https://hono.dev/) and TypeScript.
+An idempotent sync engine that pushes structured, multi-locale data into Webflow CMS collections via the Data API v2. Built with Hono, TypeScript, and the official `webflow-api` SDK.
 
-## Features
+## Why This Exists
 
-- ✅ **Collection Management** – Automatically creates CMS collections (Categories, Cities, Studios)
-- ✅ **Type-safe Schemas** – TypeScript-inferred types from Webflow collection field definitions
-- ✅ **Smart Sync** – Creates new items, updates existing, and cleans up orphaned entries
-- ✅ **Reference Fields** – Supports both single (`Reference`) and multi-reference (`MultiReference`) field types
-- ✅ **External ID Tracking** – Uses `external-id` field to maintain sync between source DB and Webflow
-- ✅ **Multi-Locale Support** – Syncs content across multiple locales (Swedish, English)
+Webflow CMS is great for content-driven sites, but managing it programmatically has sharp edges. This project solves the common scenario: **you have structured data (JSON, database, etc.) and want to keep Webflow CMS in sync with it automatically**.
 
----
-
-## Project Structure
-
-```
-src/
-├── index.ts              # Hono API server with sync endpoints
-├── db/                   # Mock database (JSON files)
-│   ├── index.ts          # Data access layer with types & locale support
-│   ├── categories.json   # Localized category data (sv/en)
-│   ├── cities.json       # Localized city data (sv/en)
-│   └── studios.json      # Localized studio data (sv/en)
-├── sync/                 # Sync logic
-│   ├── index.ts          # Main sync orchestration (syncAll)
-│   ├── utils.ts          # Generic sync function & shared types
-│   ├── collections.ts    # Collection creation & validation
-│   ├── categories.ts     # Category item sync with localization
-│   ├── cities.ts         # City item sync with localization
-│   ├── studios.ts        # Studio item sync with localization
-│   └── cleanup.ts        # Orphaned item & reference cleanup
-└── webflow/              # Webflow API utilities
-    ├── client.ts         # API client wrapper, locale helpers
-    └── schemas.ts        # Collection field definitions & types
-```
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- pnpm (recommended) or npm
-- Webflow account with a site
-- [Webflow API Access Token](https://developers.webflow.com/reference/authorization)
-- **Localization enabled** in your Webflow site (for multi-locale support)
-
-### Installation
+## Quick Start
 
 ```bash
-# Clone the repository
-git clone <repo-url>
-cd webflow-integration-demo
-
 # Install dependencies
 pnpm install
 
-# Copy environment file
+# Set up environment variables (see below)
 cp .env.example .env
+
+# Run the dev server
+pnpm dev
 ```
 
-### Configuration
-
-Edit `.env` with your Webflow credentials:
+### Environment Variables
 
 ```env
-WEBFLOW_ACCESS_TOKEN=your_access_token_here
-WEBFLOW_SITE_ID=your_site_id_here
-WEBFLOW_CATEGORIES_COLLECTION_SLUG=categories
-WEBFLOW_CITIES_COLLECTION_SLUG=cities
-WEBFLOW_STUDIOS_COLLECTION_SLUG=studios
+WEBFLOW_ACCESS_TOKEN=   # API token from Webflow dashboard → Site Settings → Apps & Integrations
+WEBFLOW_SITE_ID=        # Site ID from Webflow Dashboard → Site Settings → General
 ```
 
-> **Finding your Site ID:** In Webflow, go to Site Settings → General → look for the Site ID in the URL or API section.
+> That's it — collection IDs are resolved automatically by matching schema-defined slugs against your Webflow site.
 
-### Running the Server
+---
 
-```bash
-# Development (with hot reload)
-pnpm dev
+## Webflow CMS Concepts
 
-# Production
-pnpm build
-pnpm start
+A few things about the Webflow CMS API that aren't obvious:
+
+### Collections & Fields
+
+- A **Collection** is like a database table (e.g. "Studios", "Categories").
+- Each collection has **fields** (columns) with a `slug`, `displayName`, and `type`.
+- Every collection comes with built-in fields: `name`, `slug`, `_archived`, `_draft`, etc. These can't be deleted.
+- Field types include `PlainText`, `RichText`, `Image`, `Number`, `Reference`, `MultiReference`, etc.
+
+### The `-2` Slug Problem
+
+When you delete a Webflow field and recreate it with the same name, Webflow doesn't reuse the old slug. Instead it appends `-2`, `-3`, etc:
+
+```
+"latitude" → delete → recreate → "latitude-2"
 ```
 
-Server runs at `http://localhost:3000`
+This is permanent — you can't rename the slug back. The sync engine handles this automatically by matching fields using a pattern (`latitude` matches `latitude-2`) and resolving the actual slug before sending data.
+
+### Locales
+
+Webflow supports multi-locale sites. Each CMS item has one variant per locale, all sharing the same Webflow item ID. Important details:
+
+- **Create**: pass `cmsLocaleIds` to create variants for all locales in one call.
+- **Update**: each locale variant is a separate entry in the update payload (`{ id, cmsLocaleId, fieldData }`).
+- **Delete/Publish**: you **must** pass `cmsLocaleIds` explicitly. Without it, Webflow only affects the primary locale — secondary locale variants and their slugs persist as ghosts.
+- **Slug in updates**: don't send `slug` in update payloads. Webflow validates slug uniqueness across all entries in the batch, so sending the same slug for multiple locale variants of the same item causes a conflict.
+
+### References
+
+- **Reference** (single): stores one Webflow item ID linking to another collection.
+- **MultiReference**: stores an array of Webflow item IDs.
+- Both require the target collection's **collection ID** at field creation time.
+- When syncing data, you need to resolve your local IDs (e.g. `"city-stockholm"`) to Webflow item IDs (e.g. `"507f1f77bcf86cd799439011"`). This is why categories and cities must be synced before studios.
+
+### Rate Limits
+
+Webflow enforces **60 requests per minute** per API token. The sync engine uses a token-bucket rate limiter with 1050ms minimum spacing between requests. All API calls flow through a shared scheduler — no manual throttling needed.
+
+### Publishing
+
+Items created via the API start as **staged** (draft). You must explicitly publish them. If the Webflow site itself has never been published, the publish API returns a `409 Conflict` — the engine detects this and skips publishing with a warning instead of failing.
+
+---
+
+## Architecture
+
+```
+src/
+├── index.ts              # Hono API server — HTTP endpoints
+├── types.ts              # Shared types (SyncResult, SyncOptions, etc.)
+├── db/                   # Source data (JSON files + typed accessors)
+│   ├── index.ts          # Type definitions & data exports
+│   ├── categories.json
+│   ├── cities.json
+│   └── studios.json
+├── webflow/
+│   ├── client.ts         # Webflow client, config, collection resolver + cache
+│   └── schemas.ts        # Collection schemas (single source of truth)
+├── sync/
+│   ├── index.ts          # Full pipeline orchestrator (syncAll)
+│   ├── categories.ts     # Category-specific sync logic
+│   ├── cities.ts         # City-specific sync logic
+│   ├── studios.ts        # Studio-specific sync logic (with references)
+│   ├── cleanup.ts        # Orphan removal + reference cleanup
+│   └── collections.ts    # Schema sync + validation
+└── utils/
+    ├── sync.ts           # Generic sync engine (syncCollection)
+    ├── schema.ts         # Schema sync engine (field creation/removal/validation)
+    ├── batch.ts          # Batch operations (create, update, delete, publish)
+    ├── cleanup.ts        # Cleanup utilities (orphan detection, reference removal)
+    ├── webflow.ts        # Low-level Webflow helpers (fetch items, locales)
+    ├── rate-limiter.ts   # Token-bucket rate limiter
+    └── locales.ts        # Webflow locale tag → app locale mapping
+```
+
+### Two-Phase Sync
+
+The sync runs in two distinct phases:
+
+**Phase 1: Schema Sync** (`POST /api/sync/collections`)
+
+Creates collections and fields in Webflow from code-defined schemas. Run this once on setup or when you change the schema.
+
+```
+schemas.ts → syncCollectionSchema() → Webflow collections exist with correct fields
+```
+
+**Phase 2: Data Sync** (`POST /api/sync/all`)
+
+Pushes your source data into the collections. Safe to run repeatedly — the engine is idempotent.
+
+```
+db/*.json → syncCollection() → items created/updated/deleted in Webflow
+```
+
+---
+
+## Sync Engine
+
+The core engine (`syncCollection` in `utils/sync.ts`) follows this pipeline for each collection:
+
+```
+0. Pre-flight    Validate schema if provided (abort on missing fields)
+1. Discover      Fetch all existing Webflow items across all locales
+2. Categorize    Compare local → remote:
+                   • toCreate — item not in Webflow
+                   • toRecreate — item exists but missing locale variants
+                   • toUpdate — item exists with all locales
+                   • toDelete — orphans, corrupted, duplicates
+3. Delete        Remove orphans + corrupted + incomplete items
+4. Create        POST new items with all locale variants
+5. Re-fetch      Get definitive Webflow IDs (handles creates + ghost items)
+6. Update        PATCH every item × every locale (staged)
+7. Publish       Batch-publish all items across all locales
+```
+
+### Self-Healing
+
+The engine converges to the correct state regardless of the current Webflow state. It handles:
+
+- Items created manually in the Webflow Designer
+- Items an editor accidentally drafted or unpublished
+- Partially failed previous syncs (ghost items)
+- Corrupted items (locale variants with different identifier values)
+- Duplicate items (multiple Webflow items for the same external ID)
+
+### Pre-flight Validation
+
+When a `schema` is provided in `SyncOptions`, the engine validates that all required fields exist in Webflow before sending any data. If fields are missing or types don't match, it aborts early with a clear error:
+
+```
+[general] Missing fields in Webflow: latitude, longitude. Run schema sync first to create them.
+```
+
+---
+
+## Cleanup
+
+Cleanup runs after data sync and handles deletions in dependency order:
+
+1. **Delete orphaned Studios** (nothing references Studios)
+2. **Remove references** from remaining Studios that point to Cities/Categories being deleted
+3. **Delete orphaned Cities**
+4. **Delete orphaned Categories**
+
+Step 2 is critical — Webflow won't let you delete an item that's still referenced by another item.
+
+The delete itself uses a **double-delete pattern**:
+
+1. `deleteItemsLive` — unpublish from all locales
+2. `deleteItems` — permanently delete from all locales
+
+Without this, secondary locale variant slugs persist as ghost entries.
 
 ---
 
 ## API Endpoints
 
-### Health Check
+| Method | Path                        | Description                                 |
+| ------ | --------------------------- | ------------------------------------------- |
+| `POST` | `/api/sync/collections`     | Create/update collection schemas in Webflow |
+| `GET`  | `/api/validate/collections` | Validate schemas without making changes     |
+| `POST` | `/api/sync/all`             | Full pipeline: sync all data + cleanup      |
+| `POST` | `/api/sync/categories`      | Sync categories only                        |
+| `POST` | `/api/sync/cities`          | Sync cities only                            |
+| `POST` | `/api/sync/studios`         | Sync studios only                           |
+| `POST` | `/api/cleanup/all`          | Remove orphaned items                       |
+| `GET`  | `/health`                   | Health check                                |
+
+### Typical first-time setup
 
 ```bash
-GET /health
+# 1. Sync schemas (creates collections + fields)
+curl -X POST http://localhost:3000/api/sync/collections
+
+# 2. Sync all data (collection IDs are resolved automatically)
+curl -X POST http://localhost:3000/api/sync/all
 ```
 
-Returns `{ "status": "ok" }` if the server is running.
+---
 
-### Sync Collections (Schema)
+## Adding a New Collection
 
-```bash
-POST /api/sync/collections
-```
+1. **Define the schema** in `webflow/schemas.ts`:
 
-Creates/validates CMS collections in Webflow:
-
-1. **Categories** – Simple collection with `external-id` field
-2. **Cities** – Simple collection with `external-id` field
-3. **Studios** – Collection with reference fields to Categories and Cities
-
-This endpoint will:
-
-- Create collections if they don't exist
-- Warn about missing fields (fields must be added manually in Webflow Designer)
-- Publish the site after syncing
-
-**Example Response:**
-
-```json
-{
-  "success": true,
-  "results": {
-    "collections": {
-      "categories": { "id": "...", "displayName": "Categories" },
-      "cities": { "id": "...", "displayName": "Cities" },
-      "studios": { "id": "...", "displayName": "Studios" }
+```typescript
+export const productsSchema: CollectionSchema = {
+  displayName: "Products",
+  singularName: "Product",
+  slug: "products",
+  fields: [
+    {
+      slug: "external-id",
+      displayName: "External ID",
+      type: "PlainText",
+      isRequired: true,
     },
-    "warnings": [],
-    "errors": []
-  }
-}
-```
-
-### Full Sync (All Items + Cleanup)
-
-```bash
-POST /api/sync/all
-```
-
-Syncs all data from the mock database to Webflow CMS **across all configured locales**:
-
-1. **Sync Categories** – Creates/updates category items in all locales
-2. **Sync Cities** – Creates/updates city items in all locales
-3. **Build ID Mappings** – Maps external IDs to Webflow item IDs
-4. **Sync Studios** – Creates/updates studio items with category & city references
-5. **Cleanup** – Removes orphaned items and cleans up dangling references
-
-### Individual Sync Endpoints
-
-```bash
-POST /api/sync/categories   # Sync only categories
-POST /api/sync/cities       # Sync only cities
-POST /api/sync/studios      # Sync only studios
-POST /api/cleanup/all       # Run cleanup only
-```
-
-**Example Response (per-entity sync):**
-
-```json
-{
-  "success": true,
-  "results": {
-    "created": 3,
-    "updated": 2,
-    "published": 5,
-    "errors": [],
-    "duration": 1250
-  }
-}
-```
-
----
-
-## Localization Support
-
-This demo supports multi-locale content synchronization using Webflow's Localization API.
-
-### How It Works
-
-1. **Webflow Site Configuration**: Enable localization in Webflow and add your desired locales (e.g., English as primary, Swedish as secondary)
-
-2. **Data Structure**: The mock database uses a nested `locales` object:
-
-```json
-{
-  "id": "cat_006",
-  "slug": "high-intensity",
-  "locales": {
-    "sv": { "name": "Högintensiv" },
-    "en": { "name": "High Intensity" }
-  }
-}
-```
-
-3. **Sync Process**:
-   - When creating a **new item**, the API creates variants for all locales at once using `createItems`
-   - Primary locale content is set during creation
-   - Secondary locales are updated with translated content using `updateItemLive`
-   - When **updating** an existing item, each locale variant is updated independently
-
-### Locale Mapping
-
-The sync maps Webflow locale tags to database locale keys:
-
-| Webflow Tag   | DB Locale |
-| ------------- | --------- |
-| `sv-SE`, `sv` | `sv`      |
-| `en-US`, `en` | `en`      |
-
-### Adding More Locales
-
-1. Add the locale in `src/db/index.ts`:
-
-   ```typescript
-   export type SupportedLocale = "sv" | "en" | "de";
-   export const SUPPORTED_LOCALES: SupportedLocale[] = ["sv", "en", "de"];
-   ```
-
-2. Update the mapping function in `src/webflow/client.ts`:
-
-   ```typescript
-   const mapping: Record<string, SupportedLocale> = {
-     "sv-SE": "sv",
-     "en-US": "en",
-     "de-DE": "de",
-   };
-   ```
-
-3. Add translated content to your JSON files
-
-4. Enable the locale in Webflow Designer
-
-### Important: API Limitations
-
-- **New locales on existing items**: The Webflow API cannot add new locales to items that already exist. If you add a new locale to your site, existing items must have the locale added manually in Webflow Designer before syncing.
-
-- **Locale-specific publishing**: Each locale maintains its own publishing state. Changes in one locale don't affect others.
-
----
-
-## How It Works
-
-### Collection Schemas
-
-Schemas are defined in `src/webflow/schemas.ts` using TypeScript for type inference:
-
-```typescript
-const studiosFields = [
-  { id: "external-id", type: "PlainText", isRequired: true },
-  { id: "address", type: "PlainText", isRequired: false },
-  { id: "city", type: "Reference", isRequired: false },
-  { id: "categories", type: "MultiReference", isRequired: false },
-  // ... more fields
-] as const;
-```
-
-Types are automatically inferred:
-
-```typescript
-type StudioCollectionItem = {
-  name: string;
-  slug: string;
-  "external-id": string;
-  address: string | undefined;
-  city: string | undefined; // Reference ID
-  categories: string[] | undefined; // Array of Reference IDs
+    { slug: "price", displayName: "Price", type: "Number" },
+  ],
 };
 ```
 
-### Sync Strategy
+2. **Add source data** in `db/` with typed exports.
 
-The sync process uses **external IDs** to maintain a stable mapping between your source database and Webflow:
-
-1. Each item in the source DB has a unique `id`
-2. This ID is stored in Webflow's `external-id` field
-3. During sync, items are matched by `external-id` (or by `slug` as fallback)
-4. If found → update, otherwise → create
-
-### Reference Field Handling
-
-For reference fields:
-
-1. First sync the referenced collections (Categories, Cities)
-2. Build a mapping: `external-id → Webflow item ID`
-3. When syncing Studios, translate `categoryIds` to Webflow item IDs
+3. **Create a sync function** in `sync/` following the pattern in `categories.ts`:
 
 ```typescript
-// Transform source category IDs to Webflow item IDs
-const webflowCategoryIds = studio.categoryIds
-  .map((id) => categoryIdMap.get(id))
-  .filter(Boolean);
-```
+export async function syncProductsToWebflow(products: Product[]) {
+  const cols = await resolveCollections();
+  const s = (desired: string) => cols.products.slugMap.get(desired) ?? desired;
 
----
-
-## Customization
-
-### Adding New Collections
-
-1. Define fields in `src/webflow/schemas.ts`:
-
-   ```typescript
-   const myCollectionFields = [
-     { id: "external-id", type: "PlainText", isRequired: true },
-     // ... your fields
-   ] as const;
-   ```
-
-2. Create a schema getter:
-
-   ```typescript
-   export const getMyCollectionSchema = () => ({
-     displayName: "My Collection",
-     singularName: "My Item",
-     slug: "my-collection",
-     fields: [...myCollectionFields],
-   });
-   ```
-
-3. Add mock data in `src/db/` with localized structure
-
-4. Create a sync function in `src/sync/`
-
-5. Update `syncAll()` to include your collection
-
-### Mock Data Structure (with Localization)
-
-Edit the JSON files in `src/db/`:
-
-**categories.json / cities.json:**
-
-```json
-{
-  "id": "cat_001",
-  "slug": "barre",
-  "locales": {
-    "sv": { "name": "Barre" },
-    "en": { "name": "Barre" }
-  }
-}
-```
-
-**studios.json:**
-
-```json
-{
-  "id": "studio_001",
-  "slug": "bruce-studios-vasastan",
-  "address": "Odengatan 42",
-  "city": "city_stockholm",
-  "categoryIds": ["cat_009", "cat_011"],
-  "locales": {
-    "sv": {
-      "name": "Bruce Studios Vasastan",
-      "description": "Ett premium träningscenter..."
+  return syncCollection(
+    {
+      collectionId: cols.products.id,
+      siteId: webflowConfig.siteId,
+      items: products,
+      schema: productsSchema,
+      identifierField: s("external-id"),
+      buildFieldData: (item, localeTag) => ({
+        name: item.name,
+        slug: item.slug,
+        [s("external-id")]: item.id,
+        [s("price")]: item.price,
+      }),
     },
-    "en": {
-      "name": "Bruce Studios Vasastan",
-      "description": "A premium fitness center..."
-    }
-  }
+    webflow,
+    schedule,
+  );
 }
 ```
 
----
+4. **Add to the collection resolver** in `webflow/client.ts` (add to `ResolvedCollections` type and `resolveCollections()` function).
 
-## Important Notes
+5. **Register** in `sync/collections.ts` (schema sync) and `sync/index.ts` (data sync).
 
-### Webflow API Limitations
-
-- **Field Creation:** The Webflow API can create collections but not add fields to existing collections. If you see warnings about missing fields, add them manually in Webflow Designer.
-
-- **Rate Limits:** The Webflow API has rate limits. For large datasets, consider adding delays between requests.
-
-- **Publishing:** After syncing collections, the site is published automatically. CMS item changes are visible immediately in the Designer and on published sites.
-
-- **Localization:** Cannot add new locales to existing items via API. Add locales manually in Webflow first.
-
-### External ID Pattern
-
-Always include an `external-id` field in your collections. This provides:
-
-- Stable sync between source DB and Webflow
-- Ability to update existing items instead of creating duplicates
-- Orphan detection for cleanup
+6. **Add an endpoint** in `index.ts`.
 
 ---
 
-## Scripts
+## Field Slug Resolution
 
-| Command      | Description                              |
-| ------------ | ---------------------------------------- |
-| `pnpm dev`   | Start development server with hot reload |
-| `pnpm build` | Compile TypeScript to JavaScript         |
-| `pnpm start` | Run production server                    |
+Field slug resolution is handled automatically by `resolveCollections()`. The resolver caches both collection IDs and slug maps — resolved once, reused everywhere:
 
----
+```typescript
+const cols = await resolveCollections();
+const s = (desired: string) => cols.studios.slugMap.get(desired) ?? desired;
 
-## Tech Stack
+// s() resolves the actual Webflow slug:
+return {
+  [s("external-id")]: item.id, // might resolve to "external-id-2"
+  [s("latitude")]: item.lat, // might resolve to "latitude-2"
+};
+```
 
-- **[Hono](https://hono.dev/)** – Lightweight web framework
-- **[webflow-api](https://www.npmjs.com/package/webflow-api)** – Official Webflow API client
-- **TypeScript** – Type-safe development
-- **tsx** – TypeScript execution with hot reload
-
----
-
-## License
-
-MIT
+This is necessary because of the `-2` slug problem described above. Without it, Webflow rejects the data with `"Field not described in schema"`.

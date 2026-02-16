@@ -1,74 +1,602 @@
 [
     {
         "id": "studio_001",
-        "name": "Bruce Studios Vasastan",
-        "address": "Odengatan 42",
-        "city": "Stockholm",
-        "description": "Ett premium padelhall i hjärtat av Vasastan med 6 banor och toppmodern utrustning. Här möts passion för padel med skandinavisk design.",
-        "heroImageUrl": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1200",
-        "lat": 59.3426,
-        "lng": 18.0549,
         "slug": "bruce-studios-vasastan",
-        "categoryIds": ["cat_009", "cat_011"]
+        "address": "Odengatan 42",
+        "city": "city_001",
+        "heroImageUrl": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1200",
+        "lat": "59.3426",
+        "lng": "18.0549",
+        "categoryIds": ["cat_009", "cat_011"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Vasastan",
+                "description": "Ett premium padelhall i hjärtat av Vasastan med 6 banor och toppmodern utrustning. Här möts passion för padel med skandinavisk design."
+            },
+            "en": {
+                "name": "Bruce Studios Vasastan",
+                "description": "A premium padel hall in the heart of Vasastan with 6 courts and state-of-the-art equipment. Here, the passion for padel meets Scandinavian design."
+            }
+        }
     },
     {
         "id": "studio_002",
-        "name": "Bruce Studios Södermalm",
-        "address": "Götgatan 78",
-        "city": "Stockholm",
-        "description": "Vår flaggskeppsanläggning på Södermalm erbjuder 8 banor, restaurang och recovery-zon. Perfekt för både nybörjare och proffs.",
-        "heroImageUrl": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200",
-        "lat": 59.3151,
-        "lng": 18.0736,
         "slug": "bruce-studios-sodermalm",
-        "categoryIds": ["cat_005", "cat_009", "cat_013", "cat_015"]
+        "address": "Götgatan 78",
+        "city": "city_001",
+        "heroImageUrl": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200",
+        "lat": "59.3151",
+        "lng": "18.0736",
+        "categoryIds": ["cat_005", "cat_009", "cat_013", "cat_015"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Södermalm",
+                "description": "Vår flaggskeppsanläggning på Södermalm erbjuder 8 banor, restaurang och recovery-zon. Perfekt för både nybörjare och proffs."
+            },
+            "en": {
+                "name": "Bruce Studios Södermalm",
+                "description": "Our flagship facility in Södermalm offers 8 courts, a restaurant, and a recovery zone. Perfect for both beginners and pros."
+            }
+        }
     },
     {
         "id": "studio_003",
-        "name": "Bruce Studios Kungsholmen",
-        "address": "Fleminggatan 18",
-        "city": "Stockholm",
-        "description": "Modern anläggning nära Fridhemsplan med 5 banor och flexibla öppettider. Boka enkelt via appen.",
-        "heroImageUrl": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1200",
-        "lat": 59.3327,
-        "lng": 18.0347,
         "slug": "bruce-studios-kungsholmen",
-        "categoryIds": ["cat_003", "cat_006", "cat_013"]
+        "address": "Fleminggatan 18",
+        "city": "city_001",
+        "heroImageUrl": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1200",
+        "lat": "59.3327",
+        "lng": "18.0347",
+        "categoryIds": ["cat_006", "cat_013"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Kungsholmen",
+                "description": "Modern anläggning nära Fridhemsplan med 5 banor och flexibla öppettider. Boka enkelt via appen."
+            },
+            "en": {
+                "name": "Bruce Studios Kungsholmen",
+                "description": "Modern facility near Fridhemsplan with 5 courts and flexible opening hours. Book easily via the app."
+            }
+        }
     },
     {
         "id": "studio_004",
-        "name": "Bruce Studios Göteborg",
-        "address": "Avenyn 25",
-        "city": "Göteborg",
-        "description": "Vår första anläggning på västkusten. 6 banor med havsutsikt och Göteborgs bästa padelmiljö.",
-        "heroImageUrl": "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200",
-        "lat": 57.6969,
-        "lng": 11.9746,
         "slug": "bruce-studios-goteborg",
-        "categoryIds": ["cat_009", "cat_010", "cat_015"]
+        "address": "Avenyn 25",
+        "city": "city_002",
+        "heroImageUrl": "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200",
+        "lat": "57.6969",
+        "lng": "11.9746",
+        "categoryIds": ["cat_009", "cat_010", "cat_015"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Göteborg",
+                "description": "Vår första anläggning på västkusten. 6 banor med havsutsikt och Göteborgs bästa padelmiljö."
+            },
+            "en": {
+                "name": "Bruce Studios Gothenburg",
+                "description": "Our first facility on the west coast. 6 courts with sea views and Gothenburg's best padel environment."
+            }
+        }
     },
     {
         "id": "studio_005",
-        "name": "Bruce Studios Malmö",
-        "address": "Stortorget 12",
-        "city": "Malmö",
-        "description": "Centralt belägen i Malmö med 4 banor och café. Perfekt för en match efter jobbet.",
-        "heroImageUrl": "https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?w=1200",
-        "lat": 55.6059,
-        "lng": 13.0007,
         "slug": "bruce-studios-malmo",
-        "categoryIds": ["cat_001", "cat_004", "cat_010", "cat_015"]
+        "address": "Stortorget 12",
+        "city": "city_003",
+        "heroImageUrl": "https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?w=1200",
+        "lat": "55.6059",
+        "lng": "13.0007",
+        "categoryIds": ["cat_001", "cat_004", "cat_010", "cat_015"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Malmö",
+                "description": "Centralt belägen i Malmö med 4 banor och café. Perfekt för en match efter jobbet."
+            },
+            "en": {
+                "name": "Bruce Studios Malmoe",
+                "description": "Centrally located in Malmoe with 4 courts and a café. Perfect for a match after work."
+            }
+        }
     },
     {
         "id": "studio_006",
-        "name": "Bruce Studios Uppsala",
-        "address": "Svartbäcksgatan 8",
-        "city": "Uppsala",
-        "description": "Studentvänlig anläggning nära centrum med 4 banor och förmånliga medlemspriser.",
-        "heroImageUrl": null,
-        "lat": 59.8586,
-        "lng": 17.6389,
         "slug": "bruce-studios-uppsala",
-        "categoryIds": ["cat_005", "cat_007", "cat_008", "cat_012"]
+        "address": "Svartbäcksgatan 8",
+        "city": "city_004",
+        "heroImageUrl": null,
+        "lat": "59.8586",
+        "lng": "17.6389",
+        "categoryIds": ["cat_005", "cat_007", "cat_008", "cat_012"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Uppsala",
+                "description": "Studentvänlig anläggning nära centrum med 4 banor och förmånliga medlemspriser."
+            },
+            "en": {
+                "name": "Bruce Studios Uppsala",
+                "description": "Student-friendly facility near the city center with 4 courts and favorable membership prices."
+            }
+        }
+    },
+    {
+        "id": "studio_007",
+        "slug": "bruce-studios-ostermalm",
+        "address": "Strandvägen 15",
+        "city": "city_001",
+        "heroImageUrl": "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=1200",
+        "lat": "59.3325",
+        "lng": "18.0820",
+        "categoryIds": ["cat_010", "cat_015"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Östermalm",
+                "description": "Exklusiv yoga- och pilatesstudio vid Strandvägen. Lugn miljö med utsikt över vattnet."
+            },
+            "en": {
+                "name": "Bruce Studios Östermalm",
+                "description": "Exclusive yoga and pilates studio on Strandvägen. Peaceful environment with water views."
+            }
+        }
+    },
+    {
+        "id": "studio_008",
+        "slug": "bruce-studios-hammarby",
+        "address": "Hammarby Allé 93",
+        "city": "city_001",
+        "heroImageUrl": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200",
+        "lat": "59.3040",
+        "lng": "18.1015",
+        "categoryIds": ["cat_005", "cat_006", "cat_013"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Hammarby",
+                "description": "Stort gym med fokus på styrketräning och HIIT. Över 2000 kvm träningsyta."
+            },
+            "en": {
+                "name": "Bruce Studios Hammarby",
+                "description": "Large gym focusing on strength training and HIIT. Over 2000 sqm of training space."
+            }
+        }
+    },
+    {
+        "id": "studio_009",
+        "slug": "bruce-studios-nacka",
+        "address": "Nacka Strandväg 22",
+        "city": "city_001",
+        "heroImageUrl": "https://images.unsplash.com/photo-1576678927484-cc907957088c?w=1200",
+        "lat": "59.3110",
+        "lng": "18.1635",
+        "categoryIds": ["cat_008", "cat_014"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Nacka",
+                "description": "Klättringscenter med utomhusträning. Bouldering, topprep och outdoor bootcamp."
+            },
+            "en": {
+                "name": "Bruce Studios Nacka",
+                "description": "Climbing center with outdoor training. Bouldering, top rope, and outdoor bootcamp."
+            }
+        }
+    },
+    {
+        "id": "studio_010",
+        "slug": "bruce-studios-solna",
+        "address": "Solnavägen 35",
+        "city": "city_001",
+        "heroImageUrl": "https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=1200",
+        "lat": "59.3600",
+        "lng": "18.0030",
+        "categoryIds": ["cat_007", "cat_006"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Solna",
+                "description": "Kampsportscenter med MMA, boxning och jiu-jitsu. Professionella tränare och sparring."
+            },
+            "en": {
+                "name": "Bruce Studios Solna",
+                "description": "Martial arts center with MMA, boxing, and jiu-jitsu. Professional coaches and sparring."
+            }
+        }
+    },
+    {
+        "id": "studio_011",
+        "slug": "bruce-studios-sundbyberg",
+        "address": "Sturegatan 4",
+        "city": "city_001",
+        "heroImageUrl": "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=1200",
+        "lat": "59.3611",
+        "lng": "17.9711",
+        "categoryIds": ["cat_001", "cat_010"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Sundbyberg",
+                "description": "Intimt studio för barre och pilates. Små grupper och personlig träning."
+            },
+            "en": {
+                "name": "Bruce Studios Sundbyberg",
+                "description": "Intimate studio for barre and pilates. Small groups and personal training."
+            }
+        }
+    },
+    {
+        "id": "studio_012",
+        "slug": "bruce-studios-haga",
+        "address": "Haga Nygata 18",
+        "city": "city_002",
+        "heroImageUrl": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1200",
+        "lat": "57.6997",
+        "lng": "11.9545",
+        "categoryIds": ["cat_015", "cat_010"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Haga",
+                "description": "Charmigt yogastudio i hjärtat av Haga. Morgonyoga, kvällsflow och meditation."
+            },
+            "en": {
+                "name": "Bruce Studios Haga",
+                "description": "Charming yoga studio in the heart of Haga. Morning yoga, evening flow, and meditation."
+            }
+        }
+    },
+    {
+        "id": "studio_013",
+        "slug": "bruce-studios-lindholmen",
+        "address": "Lindholmsallén 10",
+        "city": "city_002",
+        "heroImageUrl": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1200",
+        "lat": "57.7065",
+        "lng": "11.9385",
+        "categoryIds": ["cat_005", "cat_013", "cat_006"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Lindholmen",
+                "description": "Tech-hub gym med smart utrustning och app-integrerad träning. Perfekt för kontorsarbetare."
+            },
+            "en": {
+                "name": "Bruce Studios Lindholmen",
+                "description": "Tech-hub gym with smart equipment and app-integrated training. Perfect for office workers."
+            }
+        }
+    },
+    {
+        "id": "studio_014",
+        "slug": "bruce-studios-majorna",
+        "address": "Mariaplan 5",
+        "city": "city_002",
+        "heroImageUrl": "https://images.unsplash.com/photo-1549576490-b0b4831ef60a?w=1200",
+        "lat": "57.6890",
+        "lng": "11.9180",
+        "categoryIds": ["cat_004", "cat_001"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Majorna",
+                "description": "Dansstudio med allt från salsa till streetdance. Barre-lektioner varje morgon."
+            },
+            "en": {
+                "name": "Bruce Studios Majorna",
+                "description": "Dance studio with everything from salsa to street dance. Barre classes every morning."
+            }
+        }
+    },
+    {
+        "id": "studio_015",
+        "slug": "bruce-studios-molndal",
+        "address": "Göteborgsvägen 102",
+        "city": "city_002",
+        "heroImageUrl": "https://images.unsplash.com/photo-1579364046732-c21c2177730d?w=1200",
+        "lat": "57.6556",
+        "lng": "12.0136",
+        "categoryIds": ["cat_012", "cat_014"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Mölndal",
+                "description": "Simhall och utomhusträning. 50-metersbassäng och löparspår i naturen."
+            },
+            "en": {
+                "name": "Bruce Studios Mölndal",
+                "description": "Swimming hall and outdoor training. 50-meter pool and running trails in nature."
+            }
+        }
+    },
+    {
+        "id": "studio_016",
+        "slug": "bruce-studios-limhamn",
+        "address": "Linnégatan 32",
+        "city": "city_003",
+        "heroImageUrl": "https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=1200",
+        "lat": "55.5856",
+        "lng": "12.9381",
+        "categoryIds": ["cat_009", "cat_011"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Limhamn",
+                "description": "Havsnära padelhall med 4 utomhusbanor och strandnära träning på sommaren."
+            },
+            "en": {
+                "name": "Bruce Studios Limhamn",
+                "description": "Seaside padel hall with 4 outdoor courts and beach training in summer."
+            }
+        }
+    },
+    {
+        "id": "studio_017",
+        "slug": "bruce-studios-vastra-hamnen",
+        "address": "Turning Torso Plaza 1",
+        "city": "city_003",
+        "heroImageUrl": "https://images.unsplash.com/photo-1558611848-73f7eb4001a1?w=1200",
+        "lat": "55.6133",
+        "lng": "12.9753",
+        "categoryIds": ["cat_005", "cat_015", "cat_010"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Västra Hamnen",
+                "description": "Skyline-gym med panoramautsikt. Yoga vid soluppgång med vy över Öresund."
+            },
+            "en": {
+                "name": "Bruce Studios Västra Hamnen",
+                "description": "Skyline gym with panoramic views. Sunrise yoga with views over Öresund."
+            }
+        }
+    },
+    {
+        "id": "studio_018",
+        "slug": "bruce-studios-mollevangen",
+        "address": "Möllevångstorget 8",
+        "city": "city_003",
+        "heroImageUrl": "https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=1200",
+        "lat": "55.5910",
+        "lng": "13.0090",
+        "categoryIds": ["cat_007", "cat_006", "cat_013"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Möllevången",
+                "description": "Urban fightclub med boxning, thaiboxning och funktionell träning."
+            },
+            "en": {
+                "name": "Bruce Studios Möllevången",
+                "description": "Urban fight club with boxing, Thai boxing, and functional training."
+            }
+        }
+    },
+    {
+        "id": "studio_019",
+        "slug": "bruce-studios-lund",
+        "address": "Kyrkogatan 11",
+        "city": "city_003",
+        "heroImageUrl": "https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=1200",
+        "lat": "55.7047",
+        "lng": "13.1910",
+        "categoryIds": ["cat_005", "cat_008", "cat_014"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Lund",
+                "description": "Universitetsnära gym med klättring och outdoor-fokus. Studentrabatt hela året."
+            },
+            "en": {
+                "name": "Bruce Studios Lund",
+                "description": "University-adjacent gym with climbing and outdoor focus. Student discount all year."
+            }
+        }
+    },
+    {
+        "id": "studio_020",
+        "slug": "bruce-studios-gamla-stan",
+        "address": "Västerlånggatan 45",
+        "city": "city_001",
+        "heroImageUrl": "https://images.unsplash.com/photo-1562771379-eafdca7a02f8?w=1200",
+        "lat": "59.3250",
+        "lng": "18.0690",
+        "categoryIds": ["cat_015", "cat_001"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Gamla Stan",
+                "description": "Historisk byggnad omvandlad till boutique yogastudio. Tibetansk meditation."
+            },
+            "en": {
+                "name": "Bruce Studios Gamla Stan",
+                "description": "Historic building converted to boutique yoga studio. Tibetan meditation."
+            }
+        }
+    },
+    {
+        "id": "studio_021",
+        "slug": "bruce-studios-djurgarden",
+        "address": "Djurgårdsvägen 68",
+        "city": "city_001",
+        "heroImageUrl": "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=1200",
+        "lat": "59.3270",
+        "lng": "18.1160",
+        "categoryIds": ["cat_014", "cat_006"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Djurgården",
+                "description": "Outdoor bootcamp bland ekarna. Hinderbana och gruppträning i naturmiljö."
+            },
+            "en": {
+                "name": "Bruce Studios Djurgården",
+                "description": "Outdoor bootcamp among the oaks. Obstacle course and group training in nature."
+            }
+        }
+    },
+    {
+        "id": "studio_022",
+        "slug": "bruce-studios-norr-malarstrand",
+        "address": "Norr Mälarstrand 64",
+        "city": "city_001",
+        "heroImageUrl": "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200",
+        "lat": "59.3280",
+        "lng": "18.0220",
+        "categoryIds": ["cat_012", "cat_005"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Norr Mälarstrand",
+                "description": "Simning och gym vid Mälaren. Utomhusbassäng på sommaren, inomhus på vintern."
+            },
+            "en": {
+                "name": "Bruce Studios Norr Mälarstrand",
+                "description": "Swimming and gym by Mälaren. Outdoor pool in summer, indoor in winter."
+            }
+        }
+    },
+    {
+        "id": "studio_023",
+        "slug": "bruce-studios-telefonplan",
+        "address": "Telefonvägen 30",
+        "city": "city_001",
+        "heroImageUrl": "https://images.unsplash.com/photo-1570829460005-c840387bb1ca?w=1200",
+        "lat": "59.2980",
+        "lng": "17.9970",
+        "categoryIds": ["cat_004", "cat_006"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Telefonplan",
+                "description": "Kreativ hub med dans och HIIT. Designat av lokala artister."
+            },
+            "en": {
+                "name": "Bruce Studios Telefonplan",
+                "description": "Creative hub with dance and HIIT. Designed by local artists."
+            }
+        }
+    },
+    {
+        "id": "studio_024",
+        "slug": "bruce-studios-hornstull",
+        "address": "Hornstulls Strand 4",
+        "city": "city_001",
+        "heroImageUrl": "https://images.unsplash.com/photo-1623874514711-0f321325f318?w=1200",
+        "lat": "59.3160",
+        "lng": "18.0340",
+        "categoryIds": ["cat_009", "cat_005", "cat_015"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Hornstull",
+                "description": "Multisportanläggning vid vattnet. Padel, gym och rooftop yoga."
+            },
+            "en": {
+                "name": "Bruce Studios Hornstull",
+                "description": "Multi-sport facility by the water. Padel, gym, and rooftop yoga."
+            }
+        }
+    },
+    {
+        "id": "studio_025",
+        "slug": "bruce-studios-bromma",
+        "address": "Brommaplan 25",
+        "city": "city_001",
+        "heroImageUrl": "https://images.unsplash.com/photo-1548690312-e3b507d8c110?w=1200",
+        "lat": "59.3380",
+        "lng": "17.9380",
+        "categoryIds": ["cat_005", "cat_013", "cat_007"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Bromma",
+                "description": "Familjeanläggning med gym, kampsport för barn och vuxna. Parkering på plats."
+            },
+            "en": {
+                "name": "Bruce Studios Bromma",
+                "description": "Family facility with gym, martial arts for kids and adults. On-site parking."
+            }
+        }
+    },
+    {
+        "id": "studio_026",
+        "slug": "bruce-studios-enskede",
+        "address": "Enskedevägen 77",
+        "city": "city_001",
+        "heroImageUrl": "https://images.unsplash.com/photo-1581009146145-b5ef050c149a?w=1200",
+        "lat": "59.2870",
+        "lng": "18.0720",
+        "categoryIds": ["cat_010", "cat_001", "cat_015"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Enskede",
+                "description": "Lugnt kvarter-gym fokuserat på mindfulness. Pilates, barre och yin yoga."
+            },
+            "en": {
+                "name": "Bruce Studios Enskede",
+                "description": "Calm neighborhood gym focused on mindfulness. Pilates, barre, and yin yoga."
+            }
+        }
+    },
+    {
+        "id": "studio_027",
+        "slug": "bruce-studios-hisingen",
+        "address": "Rambergsvägen 12",
+        "city": "city_002",
+        "heroImageUrl": "https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=1200",
+        "lat": "57.7220",
+        "lng": "11.9470",
+        "categoryIds": ["cat_005", "cat_006", "cat_014"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Hisingen",
+                "description": "Industriell charm med CrossFit-fokus. Utomhusträningspark och löpspår."
+            },
+            "en": {
+                "name": "Bruce Studios Hisingen",
+                "description": "Industrial charm with CrossFit focus. Outdoor training park and running tracks."
+            }
+        }
+    },
+    {
+        "id": "studio_028",
+        "slug": "bruce-studios-eriksberg",
+        "address": "Dockepiren 8",
+        "city": "city_002",
+        "heroImageUrl": "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=1200",
+        "lat": "57.7010",
+        "lng": "11.9250",
+        "categoryIds": ["cat_012", "cat_010"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Eriksberg",
+                "description": "Kajnära spa med pool och aqua pilates. Relax efter träning."
+            },
+            "en": {
+                "name": "Bruce Studios Eriksberg",
+                "description": "Quayside spa with pool and aqua pilates. Relax after training."
+            }
+        }
+    },
+    {
+        "id": "studio_029",
+        "slug": "bruce-studios-frolunda",
+        "address": "Frölunda Torg 2",
+        "city": "city_002",
+        "heroImageUrl": "https://images.unsplash.com/photo-1594737625785-a6cbdabd333c?w=1200",
+        "lat": "57.6520",
+        "lng": "11.9100",
+        "categoryIds": ["cat_005", "cat_009", "cat_011"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Frölunda",
+                "description": "Shopping-integrerat gym med padel. Träna medan familjen shoppar."
+            },
+            "en": {
+                "name": "Bruce Studios Frölunda",
+                "description": "Shopping-integrated gym with padel. Train while the family shops."
+            }
+        }
+    },
+    {
+        "id": "studio_030",
+        "slug": "bruce-studios-rosengard",
+        "address": "Rosengård Centrum 15",
+        "city": "city_003",
+        "heroImageUrl": "https://images.unsplash.com/photo-1580086319619-3ed498161c77?w=1200",
+        "lat": "55.5960",
+        "lng": "13.0280",
+        "categoryIds": ["cat_007", "cat_004", "cat_005"],
+        "locales": {
+            "sv": {
+                "name": "Bruce Studios Rosengård",
+                "description": "Communitycenter med kampsport, dans och ungdomsprogram. Gratis provträning."
+            },
+            "en": {
+                "name": "Bruce Studios Rosengård",
+                "description": "Community center with martial arts, dance, and youth programs. Free trial."
+            }
+        }
     }
 ]

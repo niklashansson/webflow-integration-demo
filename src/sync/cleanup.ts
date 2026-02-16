@@ -1,18 +1,15 @@
+import type { CleanupResult } from "../types.js";
+import {
+  cleanupDeletedItems,
+  getOrphanedItems,
+  removeReferencesToItems,
+} from "../utils/cleanup.js";
 import {
   webflow,
   webflowConfig,
-  findCollectionBySlug,
-  getPrimaryLocaleId,
-  getLocaleIds,
+  schedule,
+  resolveCollections,
 } from "../webflow/client.js";
-import { defaultItemState, type WebflowItem } from "./utils.js";
-
-type CleanupResult = {
-  deleted: number;
-  deletedIds: string[];
-  referencesRemoved: number;
-  errors: string[];
-};
 
 type CleanupAllResult = {
   categories: CleanupResult;
@@ -20,212 +17,19 @@ type CleanupAllResult = {
   studios: CleanupResult;
 };
 
-// Helper to create empty cleanup result
-const emptyCleanupResult = (): CleanupResult => ({
-  deleted: 0,
-  deletedIds: [],
-  referencesRemoved: 0,
-  errors: [],
-});
-
-// Get all items from a Webflow collection with their field data
-async function getWebflowItems(collectionId: string) {
-  const primaryCmsLocaleId = await getPrimaryLocaleId();
-  const items = await webflow.collections.items.listItems(collectionId, {
-    cmsLocaleId: primaryCmsLocaleId,
-    limit: 100,
-  });
-
-  return (items.items ?? []).map((item) => ({
-    id: item.id!,
-    externalId: (item.fieldData as any)?.["external-id"] as string,
-    fieldData: item.fieldData as Record<string, unknown>,
-  }));
-}
-
-/**
- * Remove references to items that will be deleted from all referencing items.
- * This must be done BEFORE deleting the actual items to avoid Webflow errors.
- *
- * @param referencingCollectionSlug - The collection that contains references (e.g., "studios")
- * @param referenceFields - Field names that contain references to the target collection
- * @param idsToRemove - Set of Webflow item IDs that will be deleted
- */
-async function removeReferencesToItems(
-  referencingCollectionSlug: string,
-  referenceFields: { fieldName: string; isMulti: boolean }[],
-  idsToRemove: Set<string>,
-): Promise<{ updated: number; errors: string[] }> {
-  const result = { updated: 0, errors: [] as string[] };
-
-  if (idsToRemove.size === 0) return result;
-
-  const collection = await findCollectionBySlug(
-    webflowConfig.siteId,
-    referencingCollectionSlug,
-  );
-  if (!collection) {
-    result.errors.push(`Collection "${referencingCollectionSlug}" not found`);
-    return result;
-  }
-
-  const localeIds = await getLocaleIds();
-  const items = await getWebflowItems(collection.id);
-
-  // Find items that have references to the items being deleted
-  const itemsToUpdate: {
-    id: string;
-    fieldData: Record<string, unknown>;
-  }[] = [];
-
-  for (const item of items) {
-    let needsUpdate = false;
-    const updatedFieldData: Record<string, unknown> = {};
-
-    for (const { fieldName, isMulti } of referenceFields) {
-      const fieldValue = item.fieldData[fieldName];
-
-      if (isMulti && Array.isArray(fieldValue)) {
-        // MultiReference: filter out deleted IDs
-        const filtered = fieldValue.filter((id) => !idsToRemove.has(id));
-        if (filtered.length !== fieldValue.length) {
-          updatedFieldData[fieldName] = filtered;
-          needsUpdate = true;
-        }
-      } else if (!isMulti && typeof fieldValue === "string") {
-        // Single Reference: set to null if it references a deleted item
-        if (idsToRemove.has(fieldValue)) {
-          updatedFieldData[fieldName] = null;
-          needsUpdate = true;
-        }
-      }
-    }
-
-    if (needsUpdate) {
-      itemsToUpdate.push({
-        id: item.id,
-        fieldData: updatedFieldData,
-      });
-    }
-  }
-
-  if (itemsToUpdate.length === 0) {
-    return result;
-  }
-
-  try {
-    // Update ALL locales in a single API call
-    // Flatten items × locales into one array for efficiency
-    await webflow.collections.items.updateItemsLive(collection.id, {
-      items: itemsToUpdate.flatMap((item) =>
-        localeIds.map((localeId) => ({
-          ...defaultItemState,
-          id: item.id,
-          cmsLocaleId: localeId,
-          fieldData: item.fieldData,
-        })),
-      ) as WebflowItem[],
-    });
-
-    result.updated = itemsToUpdate.length;
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Unknown error";
-    result.errors.push(`Failed to remove references: ${errorMsg}`);
-  }
-
-  return result;
-}
-
-/**
- * Delete items from a Webflow collection that no longer exist in the database.
- * Returns the Webflow IDs of deleted items (useful for reference cleanup).
- */
-async function cleanupDeletedItems(
-  collectionSlug: string,
-  dbExternalIds: Set<string>,
-): Promise<CleanupResult> {
-  const result: CleanupResult = {
+function emptyCleanupResult(): CleanupResult {
+  return {
     deleted: 0,
-    deletedIds: [],
-    referencesRemoved: 0,
+    deletedIdentifiers: [],
+    deletedWebflowIds: [],
     errors: [],
   };
-
-  const localeIds = await getLocaleIds();
-
-  const collection = await findCollectionBySlug(
-    webflowConfig.siteId,
-    collectionSlug,
-  );
-  if (!collection) {
-    result.errors.push(`Collection "${collectionSlug}" not found`);
-    return result;
-  }
-
-  const webflowItems = await getWebflowItems(collection.id);
-
-  // Find items that exist in Webflow but not in the database
-  const itemsToDelete = webflowItems.filter(
-    (item) => item.externalId && !dbExternalIds.has(item.externalId),
-  );
-
-  if (itemsToDelete.length === 0) {
-    return result;
-  }
-
-  // Delete the items from both live AND staged to remove completely
-  try {
-    // Step 1: Delete from live (unpublishes the items)
-    await webflow.collections.items.deleteItemsLive(collection.id, {
-      items: itemsToDelete.map((item) => ({
-        id: item.id,
-        cmsLocaleIds: localeIds,
-      })),
-    });
-
-    // Step 2: Delete from staged (removes the draft completely)
-    await webflow.collections.items.deleteItems(collection.id, {
-      items: itemsToDelete.map((item) => ({
-        id: item.id,
-        cmsLocaleIds: localeIds,
-      })),
-    });
-
-    result.deleted = itemsToDelete.length;
-    result.deletedIds = itemsToDelete.map((i) => i.externalId);
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Unknown error";
-    result.errors.push(`Failed to delete items: ${errorMsg}`);
-  }
-
-  return result;
-}
-
-/**
- * Get the Webflow IDs of items that will be deleted (items not in dbExternalIds).
- * Used to identify which references need to be removed before deletion.
- */
-async function getIdsToDelete(
-  collectionSlug: string,
-  dbExternalIds: Set<string>,
-): Promise<Set<string>> {
-  const collection = await findCollectionBySlug(
-    webflowConfig.siteId,
-    collectionSlug,
-  );
-  if (!collection) return new Set();
-
-  const webflowItems = await getWebflowItems(collection.id);
-
-  return new Set(
-    webflowItems
-      .filter((item) => item.externalId && !dbExternalIds.has(item.externalId))
-      .map((item) => item.id),
-  );
 }
 
 /**
  * Cleanup all collections with proper reference handling.
+ *
+ * Uses the cached collection resolver for IDs and slug maps.
  *
  * Order of operations:
  * 1. Delete Studios (no items reference Studios)
@@ -238,6 +42,15 @@ export async function cleanupAll(
   cityIds: Set<string>,
   studioIds: Set<string>,
 ): Promise<CleanupAllResult> {
+  const cols = await resolveCollections();
+
+  const catIdentifier =
+    cols.categories.slugMap.get("external-id") ?? "external-id";
+  const cityIdentifier =
+    cols.cities.slugMap.get("external-id") ?? "external-id";
+  const studioIdentifier =
+    cols.studios.slugMap.get("external-id") ?? "external-id";
+
   const result: CleanupAllResult = {
     categories: emptyCleanupResult(),
     cities: emptyCleanupResult(),
@@ -246,168 +59,101 @@ export async function cleanupAll(
 
   // Step 1: Delete orphaned Studios
   result.studios = await cleanupDeletedItems(
-    webflowConfig.collectionSlugs.studios,
+    cols.studios.id,
     studioIds,
+    webflow,
+    webflowConfig.siteId,
+    studioIdentifier,
+    schedule,
   );
 
   // Step 2: Find Cities and Categories that will be deleted (parallel)
   const [cityIdsToDelete, categoryIdsToDelete] = await Promise.all([
-    getIdsToDelete(webflowConfig.collectionSlugs.cities, cityIds),
-    getIdsToDelete(webflowConfig.collectionSlugs.categories, categoryIds),
+    getOrphanedItems(
+      cols.cities.id,
+      cityIds,
+      webflow,
+      webflowConfig.siteId,
+      cityIdentifier,
+      schedule,
+    ),
+    getOrphanedItems(
+      cols.categories.id,
+      categoryIds,
+      webflow,
+      webflowConfig.siteId,
+      catIdentifier,
+      schedule,
+    ),
   ]);
 
   // Step 3: Remove references from Studios BEFORE deleting Cities/Categories
-  if (cityIdsToDelete.size > 0 || categoryIdsToDelete.size > 0) {
+  if (cityIdsToDelete.length > 0 || categoryIdsToDelete.length > 0) {
     const allIdsToRemove = new Set([
-      ...cityIdsToDelete,
-      ...categoryIdsToDelete,
+      ...cityIdsToDelete.map((item) => item.webflowItemId),
+      ...categoryIdsToDelete.map((item) => item.webflowItemId),
     ]);
 
+    // Use resolved slugs for reference field IDs
+    const cityFieldSlug = cols.studios.slugMap.get("city") ?? "city";
+    const categoriesFieldSlug =
+      cols.studios.slugMap.get("categories") ?? "categories";
+
     const refResult = await removeReferencesToItems(
-      webflowConfig.collectionSlugs.studios,
+      cols.studios.id,
       [
-        { fieldName: "city", isMulti: false },
-        { fieldName: "categories", isMulti: true },
+        { fieldId: cityFieldSlug, isMulti: false },
+        { fieldId: categoriesFieldSlug, isMulti: true },
       ],
       allIdsToRemove,
+      webflow,
+      webflowConfig.siteId,
+      schedule,
     );
 
-    result.cities.referencesRemoved =
-      cityIdsToDelete.size > 0 ? refResult.updated : 0;
-    result.categories.referencesRemoved =
-      categoryIdsToDelete.size > 0 ? refResult.updated : 0;
+    // Add any errors from reference removal
     result.cities.errors.push(...refResult.errors);
   }
 
   // Step 4: Delete orphaned Cities
   const citiesCleanup = await cleanupDeletedItems(
-    webflowConfig.collectionSlugs.cities,
+    cols.cities.id,
     cityIds,
+    webflow,
+    webflowConfig.siteId,
+    cityIdentifier,
+    schedule,
   );
-  Object.assign(result.cities, citiesCleanup);
+  result.cities = {
+    ...citiesCleanup,
+    errors: [...result.cities.errors, ...citiesCleanup.errors],
+  };
 
   // Step 5: Delete orphaned Categories
   const categoriesCleanup = await cleanupDeletedItems(
-    webflowConfig.collectionSlugs.categories,
+    cols.categories.id,
     categoryIds,
+    webflow,
+    webflowConfig.siteId,
+    catIdentifier,
+    schedule,
   );
-  Object.assign(result.categories, categoriesCleanup);
+  result.categories = {
+    ...categoriesCleanup,
+    errors: [...result.categories.errors, ...categoriesCleanup.errors],
+  };
 
   // Log summary
   const totalDeleted =
     result.categories.deleted + result.cities.deleted + result.studios.deleted;
-  const totalRefs =
-    result.cities.referencesRemoved + result.categories.referencesRemoved;
-  const hasErrors =
+  const totalErrors =
     result.studios.errors.length +
-      result.cities.errors.length +
-      result.categories.errors.length >
-    0;
+    result.cities.errors.length +
+    result.categories.errors.length;
 
   console.log(
-    `   ✅ Cleanup: ${totalDeleted} deleted, ${totalRefs} refs removed${hasErrors ? " (with errors)" : ""}`,
+    `   ✅ Cleanup: ${totalDeleted} deleted${totalErrors > 0 ? ` (${totalErrors} errors)` : ""}`,
   );
 
   return result;
-}
-
-type PurgeResult = {
-  collection: string;
-  deleted: number;
-  errors: string[];
-};
-
-type PurgeAllResult = {
-  studios: PurgeResult;
-  cities: PurgeResult;
-  categories: PurgeResult;
-  totalDeleted: number;
-};
-
-/**
- * Delete ALL items from a single collection.
- * Removes from both live and staged to completely purge items.
- */
-async function purgeCollection(collectionSlug: string): Promise<PurgeResult> {
-  const result: PurgeResult = {
-    collection: collectionSlug,
-    deleted: 0,
-    errors: [],
-  };
-
-  const collection = await findCollectionBySlug(
-    webflowConfig.siteId,
-    collectionSlug,
-  );
-  if (!collection) {
-    result.errors.push(`Collection "${collectionSlug}" not found`);
-    return result;
-  }
-
-  const localeIds = await getLocaleIds();
-  const items = await getWebflowItems(collection.id);
-
-  if (items.length === 0) {
-    console.log(`   ⏭️  ${collectionSlug}: No items to delete`);
-    return result;
-  }
-
-  try {
-    // Delete from live first (unpublishes)
-    await webflow.collections.items.deleteItemsLive(collection.id, {
-      items: items.map((item) => ({
-        id: item.id,
-        cmsLocaleIds: localeIds,
-      })),
-    });
-
-    // Then delete from staged (removes drafts)
-    await webflow.collections.items.deleteItems(collection.id, {
-      items: items.map((item) => ({
-        id: item.id,
-        cmsLocaleIds: localeIds,
-      })),
-    });
-
-    result.deleted = items.length;
-    console.log(`   🗑️  ${collectionSlug}: Deleted ${items.length} items`);
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Unknown error";
-    result.errors.push(`Failed to delete items: ${errorMsg}`);
-    console.error(`   ❌ ${collectionSlug}: ${errorMsg}`);
-  }
-
-  return result;
-}
-
-/**
- * Purge ALL items from ALL collections.
- *
- * ⚠️ WARNING: This is destructive and cannot be undone!
- *
- * Order of deletion:
- * 1. Studios (references Cities and Categories)
- * 2. Cities (no remaining references)
- * 3. Categories (no remaining references)
- */
-export async function purgeAllCollections(): Promise<PurgeAllResult> {
-  console.log("\n🗑️  Purging all collections...");
-
-  // Delete in order: Studios first (has references), then Cities, then Categories
-  const studios = await purgeCollection(webflowConfig.collectionSlugs.studios);
-  const cities = await purgeCollection(webflowConfig.collectionSlugs.cities);
-  const categories = await purgeCollection(
-    webflowConfig.collectionSlugs.categories,
-  );
-
-  const totalDeleted = studios.deleted + cities.deleted + categories.deleted;
-
-  console.log(`\n✅ Purge complete: ${totalDeleted} total items deleted`);
-
-  return {
-    studios,
-    cities,
-    categories,
-    totalDeleted,
-  };
 }

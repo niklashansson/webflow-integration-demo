@@ -1,35 +1,42 @@
-import { webflowConfig } from "../webflow/client.js";
-import { type Category, type SupportedLocale } from "../db/index.js";
-import { syncCollection, getIdMap, type SyncResult } from "./utils.js";
-
-/**
- * Build category field data for a specific locale.
- */
-function buildCategoryFieldData(category: Category, locale: SupportedLocale) {
-  return {
-    name: category.locales[locale].name,
-    slug: category.slug,
-    "external-id": category.id,
-  };
-}
+import {
+  webflowConfig,
+  webflow,
+  schedule,
+  resolveCollections,
+} from "../webflow/client.js";
+import { type Category } from "../db/index.js";
+import { syncCollection } from "../utils/sync.js";
+import { getLocaleFromWebflowTag } from "../utils/locales.js";
+import { categoriesSchema } from "../webflow/schemas.js";
 
 /**
  * Sync all categories to Webflow CMS with all locales.
+ *
+ * Collection ID and field slugs are resolved automatically
+ * from the cached collection resolver.
  */
-export async function syncAllCategories(
-  dbCategories: Category[],
-): Promise<SyncResult> {
-  return syncCollection({
-    collectionSlug: webflowConfig.collectionSlugs.categories,
-    entityName: "Categories",
-    items: dbCategories,
-    buildFieldData: buildCategoryFieldData,
-  });
-}
+export async function syncCategoriesToWebflow(categories: Category[]) {
+  const { categories: col } = await resolveCollections();
+  const s = (desired: string) => col.slugMap.get(desired) ?? desired;
 
-/**
- * Build a mapping from database external IDs to Webflow item IDs.
- */
-export async function getCategoryIdMap(): Promise<Map<string, string>> {
-  return getIdMap(webflowConfig.collectionSlugs.categories);
+  return syncCollection(
+    {
+      collectionId: col.id,
+      entityName: "Categories",
+      siteId: webflowConfig.siteId,
+      items: categories,
+      identifierField: s("external-id"),
+      schema: categoriesSchema,
+      buildFieldData: (item, webflowLocaleTag) => {
+        const locale = getLocaleFromWebflowTag(webflowLocaleTag);
+        return {
+          name: item.translations[locale].name,
+          slug: item.slug,
+          [s("external-id")]: item.id,
+        };
+      },
+    },
+    webflow,
+    schedule,
+  );
 }

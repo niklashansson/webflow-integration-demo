@@ -1,142 +1,185 @@
 import {
+  webflow,
   webflowConfig,
-  upsertCollection,
-  publishSite,
+  schedule,
+  clearCollectionCache,
 } from "../webflow/client.js";
 import {
-  getCategoriesSchema,
-  getCitiesSchema,
+  categoriesSchema,
+  citiesSchema,
   getStudiosSchema,
 } from "../webflow/schemas.js";
-import { webflow } from "../webflow/client.js";
+import {
+  syncCollectionSchema,
+  validateCollectionSchema,
+  type SchemaSyncResult,
+} from "../utils/schema.js";
 
-type SetupResult = {
-  success: boolean;
-  collections: Record<string, { id: string; displayName: string }>;
-  warnings: string[];
-  errors: string[];
+export type CollectionSyncAllResult = {
+  categories: SchemaSyncResult;
+  cities: SchemaSyncResult;
+  studios: SchemaSyncResult;
+  totalDuration: number;
 };
 
-// Check if collection fields match schema and warn about mismatches
-async function validateCollectionFields(
-  collectionId: string,
-  expectedFields: { id?: string }[],
-  collectionName: string,
-) {
-  const collection = await webflow.collections.get(collectionId);
-  const existingFieldSlugs = new Set(
-    (collection.fields ?? []).map((f) => f.slug),
+export type CollectionValidationResult = {
+  categories: Awaited<ReturnType<typeof validateCollectionSchema>>;
+  cities: Awaited<ReturnType<typeof validateCollectionSchema>>;
+  studios: Awaited<ReturnType<typeof validateCollectionSchema>>;
+  allValid: boolean;
+};
+
+/**
+ * Sync all collection schemas in dependency order.
+ *
+ * Order matters because Studios references Categories and Cities,
+ * so those collections (and their IDs) must exist first.
+ *
+ * Pipeline:
+ *  1. Sync Categories + Cities in parallel (independent)
+ *  2. Sync Studios (needs category + city collection IDs for references)
+ *
+ * This is idempotent — running it multiple times converges to
+ * the same state. Safe to call on every deploy.
+ */
+export async function syncAllCollectionSchemas(): Promise<CollectionSyncAllResult> {
+  const startTime = Date.now();
+
+  console.log("📐 Syncing collection schemas...\n");
+
+  // Step 1: Sync Categories & Cities in parallel
+  console.log("📁 Categories:");
+  const categoriesResult = await syncCollectionSchema(
+    categoriesSchema,
+    webflowConfig.siteId,
+    webflow,
+    schedule,
   );
-  const expectedFieldIds = expectedFields.map((f) => f.id).filter(Boolean);
-  const warnings: string[] = [];
 
-  // Check for missing fields
-  for (const fieldId of expectedFieldIds) {
-    if (!existingFieldSlugs.has(fieldId!)) {
-      warnings.push(
-        `${collectionName}: Missing field "${fieldId}" - add it manually in Webflow`,
-      );
-    }
-  }
+  console.log("📁 Cities:");
+  const citiesResult = await syncCollectionSchema(
+    citiesSchema,
+    webflowConfig.siteId,
+    webflow,
+    schedule,
+  );
 
-  return warnings;
+  // Step 2: Sync Studios (needs the resolved collection IDs)
+  const studiosSchema = getStudiosSchema(
+    categoriesResult.collectionId,
+    citiesResult.collectionId,
+  );
+
+  console.log("📁 Studios:");
+  const studiosResult = await syncCollectionSchema(
+    studiosSchema,
+    webflowConfig.siteId,
+    webflow,
+    schedule,
+  );
+
+  const totalDuration = Date.now() - startTime;
+
+  // Summary
+  const totalCreated =
+    categoriesResult.fieldsCreated.length +
+    citiesResult.fieldsCreated.length +
+    studiosResult.fieldsCreated.length;
+  const totalRemoved =
+    categoriesResult.fieldsRemoved.length +
+    citiesResult.fieldsRemoved.length +
+    studiosResult.fieldsRemoved.length;
+  const totalMismatches =
+    categoriesResult.typeMismatches.length +
+    citiesResult.typeMismatches.length +
+    studiosResult.typeMismatches.length;
+
+  console.log(`\n✅ Schema sync complete in ${totalDuration}ms`);
+  console.log(
+    `   ${totalCreated} fields created, ${totalRemoved} removed, ${totalMismatches} type mismatches`,
+  );
+
+  // Clear cached collection resolution so next data sync picks up changes
+  clearCollectionCache();
+
+  return {
+    categories: categoriesResult,
+    cities: citiesResult,
+    studios: studiosResult,
+    totalDuration,
+  };
 }
 
 /**
- * Sync all collections to Webflow
- * - Creates collections if they don't exist
- * - Warns about missing fields (doesn't auto-create)
- * Order: Categories → Cities → Studios (dependencies)
+ * Validate all collection schemas against their current Webflow state.
+ * Does NOT make any changes — purely a diagnostic tool.
+ *
+ * Looks up collections by slug — handles missing collections gracefully.
  */
-export async function syncCollections(): Promise<SetupResult> {
-  console.log("🚀 Starting collection sync...\n");
+export async function validateAllCollectionSchemas(): Promise<CollectionValidationResult> {
+  console.log("🔍 Validating collection schemas...\n");
 
-  const result: SetupResult = {
-    success: true,
-    collections: {},
-    warnings: [],
-    errors: [],
-  };
+  const categoriesValidation = await validateCollectionSchema(
+    categoriesSchema,
+    webflowConfig.siteId,
+    webflow,
+    schedule,
+  );
 
-  try {
-    // Step 1: Categories
-    console.log("📁 Syncing Categories collection...");
-    const categoriesSchema = getCategoriesSchema();
-    const categories = await upsertCollection(
-      webflowConfig.siteId,
-      categoriesSchema,
-    );
-    if (!categories.id) throw new Error("Failed to sync Categories collection");
-    result.collections.categories = {
-      id: categories.id,
-      displayName: categories.displayName ?? "Categories",
-    };
-    result.warnings.push(
-      ...(await validateCollectionFields(
-        categories.id,
-        categoriesSchema.fields,
-        "Categories",
-      )),
-    );
+  const citiesValidation = await validateCollectionSchema(
+    citiesSchema,
+    webflowConfig.siteId,
+    webflow,
+    schedule,
+  );
 
-    // Step 2: Cities
-    console.log("📁 Syncing Cities collection...");
-    const citiesSchema = getCitiesSchema();
-    const cities = await upsertCollection(webflowConfig.siteId, citiesSchema);
-    if (!cities.id) throw new Error("Failed to sync Cities collection");
-    result.collections.cities = {
-      id: cities.id,
-      displayName: cities.displayName ?? "Cities",
-    };
-    result.warnings.push(
-      ...(await validateCollectionFields(
-        cities.id,
-        citiesSchema.fields,
-        "Cities",
-      )),
-    );
+  const studiosSchema = getStudiosSchema(
+    categoriesValidation.collectionId ?? "",
+    citiesValidation.collectionId ?? "",
+  );
 
-    // Step 3: Studios (depends on Categories and Cities)
-    console.log("📁 Syncing Studios collection...");
-    const studiosSchema = getStudiosSchema(categories.id, cities.id);
-    const studios = await upsertCollection(webflowConfig.siteId, studiosSchema);
-    if (!studios.id) throw new Error("Failed to sync Studios collection");
-    result.collections.studios = {
-      id: studios.id,
-      displayName: studios.displayName ?? "Studios",
-    };
-    result.warnings.push(
-      ...(await validateCollectionFields(
-        studios.id,
-        studiosSchema.fields,
-        "Studios",
-      )),
-    );
+  const studiosValidation = await validateCollectionSchema(
+    studiosSchema,
+    webflowConfig.siteId,
+    webflow,
+    schedule,
+  );
 
-    // Log warnings
-    if (result.warnings.length > 0) {
-      console.log("\n⚠️ Schema warnings:");
-      result.warnings.forEach((w) => console.log(`   ${w}`));
+  const allValid =
+    categoriesValidation.valid &&
+    citiesValidation.valid &&
+    studiosValidation.valid;
+
+  // Log results
+  for (const [name, result] of Object.entries({
+    Categories: categoriesValidation,
+    Cities: citiesValidation,
+    Studios: studiosValidation,
+  })) {
+    if (!result.exists) {
+      console.log(`❌ ${name}: Collection not found — run schema sync first`);
+      continue;
     }
-
-    // Step 4: Publish
-    console.log("\n🌐 Publishing site...");
-    const publishResult = await publishSite();
-    console.log(
-      `   ✅ Published to ${publishResult.publishedDomains.length} domain(s)\n`,
-    );
-
-    console.log("🎉 Collection sync complete!");
-    console.log(`   Categories: ${categories.id}`);
-    console.log(`   Cities: ${cities.id}`);
-    console.log(`   Studios: ${studios.id}`);
-  } catch (error) {
-    result.success = false;
-    result.errors.push(
-      error instanceof Error ? error.message : "Unknown error",
-    );
-    console.error("❌ Sync failed:", result.errors[0]);
+    const icon = result.valid ? "✅" : "❌";
+    console.log(`${icon} ${name}:`);
+    if (result.missingFields.length > 0)
+      console.log(`   Missing: ${result.missingFields.join(", ")}`);
+    if (result.extraFields.length > 0)
+      console.log(`   Extra: ${result.extraFields.join(", ")}`);
+    if (result.typeMismatches.length > 0)
+      console.log(`   Type mismatches: ${result.typeMismatches.join(", ")}`);
+    if (result.slugRemaps.length > 0)
+      console.log(
+        `   Slug remaps: ${result.slugRemaps.map((r) => `${r.desired} → ${r.actual}`).join(", ")}`,
+      );
+    if (result.valid && result.extraFields.length === 0)
+      console.log(`   All fields match schema`);
   }
 
-  return result;
+  return {
+    categories: categoriesValidation,
+    cities: citiesValidation,
+    studios: studiosValidation,
+    allValid,
+  };
 }

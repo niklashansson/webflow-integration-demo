@@ -4,14 +4,12 @@ import citiesData from "./cities.json" with { type: "json" };
 
 // Supported locales for localized content
 export type SupportedLocale = "sv" | "en";
-export const SUPPORTED_LOCALES: SupportedLocale[] = ["sv", "en"];
 export const PRIMARY_LOCALE: SupportedLocale = "en";
 
-// Type definitions for mock database entities with localization
 export type Category = {
   id: string;
   slug: string;
-  locales: Record<
+  translations: Record<
     SupportedLocale,
     {
       name: string;
@@ -22,7 +20,7 @@ export type Category = {
 export type City = {
   id: string;
   slug: string;
-  locales: Record<
+  translations: Record<
     SupportedLocale,
     {
       name: string;
@@ -39,7 +37,7 @@ export type Studio = {
   lat: string | null;
   lng: string | null;
   categoryIds: string[];
-  locales: Record<
+  translations: Record<
     SupportedLocale,
     {
       name: string;
@@ -57,11 +55,3 @@ export const cities: City[] = citiesData as City[];
 export const getAllStudios = (): Studio[] => studios;
 export const getAllCategories = (): Category[] => categories;
 export const getAllCities = (): City[] => cities;
-
-// Helper to get localized value with fallback to primary locale
-export function getLocalizedValue<T>(
-  locales: Record<SupportedLocale, T>,
-  locale: SupportedLocale,
-): T {
-  return locales[locale] ?? locales[PRIMARY_LOCALE];
-}
