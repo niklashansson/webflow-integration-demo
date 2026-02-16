@@ -1,5 +1,5 @@
 {
-  "name": "webflow-integration-demo",
+  "name": "webflow-integration-example",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
